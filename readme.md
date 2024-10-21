@@ -18,7 +18,7 @@ This repository contains tests and examples for CUDA Graphs. CUDA Graphs provide
 - C++ compiler (e.g., GCC)
 <!-- - CMake for building the project -->
 
-<!-- ### Building the Project
+### Building the Project
 
 1. Clone the repository:
     ```sh
@@ -26,7 +26,22 @@ This repository contains tests and examples for CUDA Graphs. CUDA Graphs provide
     cd cuda-graph-tests
     ```
 
-2. Create a build directory and navigate into it:
+2. Navigate to one of the test directories
+    ```sh
+    cd multi-kernel-test
+    ```
+    Available tests are `memcpy-device-test`, `memcpy-host-test`, and `multi-kernel-test`.
+
+3. Compile the files with prefered naming using `nvcc` compiler:
+    ```sh
+    nvcc graph_matrix_multiply.cu -o graph_matrix_multiply
+    ```
+
+4. Run the compiled file and check the result output:
+    ```sh
+    ./graph_matrix multiply
+    ```
+<!-- 2. Create a build directory and navigate into it:
     ```sh
     mkdir build
     cd build

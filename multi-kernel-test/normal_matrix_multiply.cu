@@ -7,8 +7,8 @@
 
 #define N 64//(1<<6) // Matrix dimensions (4096x4096)
 
-#define NSTEP 100000//10
-#define NKERNEL 100
+#define NSTEP 100000 
+#define NKERNEL 100 // INDEPENDENT VARIABLE: CHANGE THE NUMBER OF KERNELS (10 OR 100)
 
 __global__ void matMulKernel(float* A, float* B, float* C, int width) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
