@@ -7,17 +7,14 @@
 // CUDA headers
 #include <cuda_runtime.h>
 
-// local headers
-#include "cuda_check.h"
+// Local headers
+#include "../cuda_check.h"
 
-// Here you can set the device ID that was assigned to you
+// Here you can set the device ID
 #define MYDEVICE 0
 
+#define N (1 << 12)  // 4096 elements
 #define NSTEP 10000
-
-// Define the array size
-const int N = 4096;
-const int dimA = N;
 
 // CUDA kernel to add 10 arrays element-wise
 __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5,
@@ -30,56 +27,52 @@ __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-// Program main
-///////////////////////////////////////////////////////////////////////////////////
 int main()
 {
     // Choose one CUDA device
     CUDA_CHECK(cudaSetDevice(MYDEVICE));
 
     // Create a CUDA stream to execute asynchronous operations on this device
-    cudaStream_t queue;
-    CUDA_CHECK(cudaStreamCreate(&queue));
+    cudaStream_t stream;
+    CUDA_CHECK(cudaStreamCreate(&stream));
 
-    size_t memSize = dimA * sizeof(float);
+    size_t memSize = N * sizeof(float);
     // Allocate pinned host memory for h_a and h_result
     float* h_a;
-    CUDA_CHECK(cudaMallocHost(&h_a, memSize));
-
     float* h_result;
+    CUDA_CHECK(cudaMallocHost(&h_a, memSize));
     CUDA_CHECK(cudaMallocHost(&h_result, memSize));
 
     // Initialize h_a
-    for (int i = 0; i < dimA; ++i) {
+    for (int i = 0; i < N; ++i) {
         h_a[i] = i;
     }
 
-    // Pointers for device memory
+    // Allocate the device memory
+    float *d_a1, *d_a2, *d_a3, *d_a4, *d_a5;
+    float *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
     float *d_result;
-    float *d_a1, *d_a2, *d_a3, *d_a4, *d_a5, *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
 
-    // Part 1 of 5: allocate the device memory
-    CUDA_CHECK(cudaMallocAsync(&d_a1, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a2, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a3, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a4, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a5, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, queue));
-    CUDA_CHECK(cudaMallocAsync(&d_result, memSize, queue)); // Allocate device memory for result
+    CUDA_CHECK(cudaMallocAsync(&d_a1, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a2, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a3, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a4, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a5, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, stream));
+    CUDA_CHECK(cudaMallocAsync(&d_result, memSize, stream));
 
     // Initialize d_result to zero
-    CUDA_CHECK(cudaMemsetAsync(d_result, 0, memSize, queue));
+    CUDA_CHECK(cudaMemsetAsync(d_result, 0, memSize, stream));
 
     // Set up grid and block dimensions
     int threadsPerBlock = 256;
     int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
 
-    // Create CUDA events for timings
+    // Set Timer variables
     cudaEvent_t start, stop;
     float elapsedTime = 0.0f;
     float graphCreateTime = 0.0f;
@@ -90,76 +83,79 @@ int main()
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
 
-    // Part 2 of 5: host to device memory copy
-    CUDA_CHECK(cudaMemcpyAsync(d_a1, h_a, memSize, cudaMemcpyHostToDevice, queue));
+    // Host to device memory copy asynchronously
+    CUDA_CHECK(cudaMemcpyAsync(d_a1, h_a, memSize, cudaMemcpyHostToDevice, stream));
 
-    // Start timing including graph creation and launch
-    CUDA_CHECK(cudaEventRecord(start, queue));
+    // Start Timer for first run / graph Creation
+    CUDA_CHECK(cudaEventRecord(start, stream));
 
     // BEGIN capturing the stream to create the CUDA graph
     cudaGraph_t graph;
-    CUDA_CHECK(cudaStreamBeginCapture(queue, cudaStreamCaptureModeGlobal));
+    CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal));
 
     // Reset d_result to zero
-    CUDA_CHECK(cudaMemsetAsync(d_result, 0, memSize, queue));
+    CUDA_CHECK(cudaMemsetAsync(d_result, 0, memSize, stream));
 
-    // Part 3 of 5: device to device memory copies
-    CUDA_CHECK(cudaMemcpyAsync(d_a2, d_a1, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a3, d_a2, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a4, d_a3, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a5, d_a4, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, queue));
-    CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, queue));
+    // Device to device memory copies asynchronously
+    CUDA_CHECK(cudaMemcpyAsync(d_a2, d_a1, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a3, d_a2, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a4, d_a3, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a5, d_a4, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
+    CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
 
-    // Part 4 of 5: single kernel launch after all memcpys
-    add_arrays<<<blocksPerGrid, threadsPerBlock, 0, queue>>>(d_a1, d_a2, d_a3, d_a4, d_a5,
-                                                            d_a6, d_a7, d_a8, d_a9, d_a10,
-                                                             d_result, N);
+    // Single kernel launch after all memcpys
+    add_arrays<<<blocksPerGrid, threadsPerBlock, 0, stream>>>(d_a1, d_a2, d_a3, d_a4, d_a5,
+                                                              d_a6, d_a7, d_a8, d_a9, d_a10,
+                                                              d_result, N);
+    CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
 
-    // Part 5 of 5: device to host memory copy
-    CUDA_CHECK(cudaMemcpyAsync(h_result, d_result, memSize, cudaMemcpyDeviceToHost, queue));
+    // Device to host memory copy asynchronously
+    CUDA_CHECK(cudaMemcpyAsync(h_result, d_result, memSize, cudaMemcpyDeviceToHost, stream));
 
-    // End capturing the stream to create the CUDA graph
-    CUDA_CHECK(cudaStreamEndCapture(queue, &graph));
+    // END capturing the stream to create the CUDA graph
+    CUDA_CHECK(cudaStreamEndCapture(stream, &graph));
 
     // Instantiate the graph
     cudaGraphExec_t graphExec;
     CUDA_CHECK(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
 
-    CUDA_CHECK(cudaEventRecord(stop, queue));
+    // End Timer for first run / graph creation
+    CUDA_CHECK(cudaEventRecord(stop, stream));
     CUDA_CHECK(cudaEventSynchronize(stop));
     CUDA_CHECK(cudaEventElapsedTime(&graphCreateTime, start, stop));
 
     for (int istep = 0; istep < NSTEP - 1; istep++) {
-        // Start Timer
-        CUDA_CHECK(cudaEventRecord(start, queue));
+        // Start Timer for each run
+        CUDA_CHECK(cudaEventRecord(start, stream));
 
         // Launch the graph
-        CUDA_CHECK(cudaGraphLaunch(graphExec, queue));
-        // Wait for the graph execution to finish
-        CUDA_CHECK(cudaStreamSynchronize(queue));
+        CUDA_CHECK(cudaGraphLaunch(graphExec, stream));
 
-        // End Timer
-        CUDA_CHECK(cudaEventRecord(stop, queue));
+        // Wait for the graph execution to finish
+        CUDA_CHECK(cudaStreamSynchronize(stream));
+
+        // End Timer for each run
+        CUDA_CHECK(cudaEventRecord(stop, stream));
         CUDA_CHECK(cudaEventSynchronize(stop));
         CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
+
+        // Time Calculations
         if (istep >= skipBy) {
             totalTime += elapsedTime;
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
-            if (elapsedTime < lowerTime) {
-                lowerTime = elapsedTime;
-            }
-            if (istep == skipBy) {
+            if (elapsedTime < lowerTime || lowerTime == 0.0f) {
                 lowerTime = elapsedTime;
             }
         }
     }
 
+    // Print time statistics
     float AverageTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
     std::cout << "Average Time: " << AverageTime << "ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << "ms" << std::endl;
@@ -169,10 +165,10 @@ int main()
     // **Print h_result before testing**
     std::cout << "h_result contents before verification:\n";
     std::cout << std::fixed << std::setprecision(2); // Set precision for floating-point output
-    std::cout << "h_result[" << dimA - 1 << "] = " << h_result[dimA - 1] << "\n";
+    std::cout << "h_result[" << N - 1 << "] = " << h_result[N - 1] << "\n";
 
     // Verify the data on the host is correct
-    for (int i = 0; i < dimA; ++i)
+    for (int i = 0; i < N; ++i)
     {
         float expected = i * 10.0f; // Since each a_i contains i, and we sum over 10 arrays
         if (h_result[i] != expected) {
@@ -186,7 +182,7 @@ int main()
     CUDA_CHECK(cudaGraphExecDestroy(graphExec));
 
     // Destroy the CUDA stream
-    CUDA_CHECK(cudaStreamDestroy(queue));
+    CUDA_CHECK(cudaStreamDestroy(stream));
 
     // Destroy the events
     CUDA_CHECK(cudaEventDestroy(start));
@@ -209,8 +205,7 @@ int main()
     CUDA_CHECK(cudaFree(d_a10));
     CUDA_CHECK(cudaFree(d_result));
 
-    // If the program makes it this far, then the results are correct and
-    // there are no run-time errors. Good work!
+    // No run-time errors
     std::cout << "Correct!" << std::endl;
 
     return 0;

@@ -41,6 +41,19 @@ This repository contains tests and examples for CUDA Graphs. CUDA Graphs provide
     ```sh
     ./graph_matrix multiply
     ```
+
+### Code Modification for Testing
+
+1. memcpy-device-test
+    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 100 skips)
+    - 
+2. memcpy-host-test
+    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 100 skips)
+    - 
+3. multi-kernel-test
+    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 0 skips)
+    - 
+
 <!-- 2. Create a build directory and navigate into it:
     ```sh
     mkdir build
