@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <iostream>
+
+// CUDA API headers
 #include <cuda_runtime.h>
 
 // Local headers
 #include "../cuda_check.h"
 
 #define N (1 << 12)  // Size of the arrays (4096 elements)
-#define NSTEP 10000
+#define NSTEP 10000  // Number of steps to run the test
 
 // CUDA kernel to add 10 arrays element-wise
 __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5,
@@ -99,6 +101,7 @@ int main() {
     // Graph Creation
     cudaGraph_t graph;
     cudaGraphExec_t instance;
+
     // Begin Capture
     CUDA_CHECK(cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal));
 

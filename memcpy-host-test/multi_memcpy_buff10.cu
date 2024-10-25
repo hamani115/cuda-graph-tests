@@ -9,7 +9,7 @@
 #include "../cuda_check.h"
 
 #define N (1 << 12)  // 4096 elements
-#define NSTEP 10000
+#define NSTEP 10000  // Number of steps to run the test
 
 // CUDA kernel to add 10 arrays element-wise
 __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5,
