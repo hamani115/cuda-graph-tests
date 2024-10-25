@@ -42,17 +42,21 @@ This repository contains tests and examples for CUDA Graphs. CUDA Graphs provide
     ./graph_matrix multiply
     ```
 
-### Code Modification for Testing
+### Code Variables for Testing
 
-1. memcpy-device-test
-    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 100 skips)
-    - 
-2. memcpy-host-test
-    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 100 skips)
-    - 
-3. multi-kernel-test
-    - modify `skipBy` value to change the number graph lauches to skip at the start (`default` 0 skips)
-    - 
+1. multi-kernel-test
+    - modify `skipBy` value to change the number of graph launches time excluded from "Time Spread" at the start (`default` 0 skips).
+    - modify `NKERNEL` value to change the number of kernel launches in the graph instance.
+    - modify `NSTEP` value to change the number of graph launches.
+    - modify `N` value to change the number of dimensions of the matrix.
+2. memcpy-device-test
+    - modify `skipBy` value to change the number graph launches to skip at the start (`default` 100 skips).
+    - modify `NSTEP` value to change the number of graph launches.
+    - modify `N` value to change the number of elements in the array.
+3. memcpy-host-test
+    - modify `skipBy` value to change the number graph launches to skip at the start (`default` 100 skips).
+    - modify `NSTEP` value to change the number of graph launches.
+    - modify `N` value to change the number of elements in the array.
 
 <!-- 2. Create a build directory and navigate into it:
     ```sh
