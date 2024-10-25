@@ -10,7 +10,7 @@
 // Local headers
 #include "../cuda_check.h"
 
-// Here you can set the device ID that was assigned to you
+// Here you can set the device ID
 #define MYDEVICE 0
 
 #define N (1 << 12)  // 4096 elements
@@ -37,6 +37,7 @@ int main()
     CUDA_CHECK(cudaStreamCreate(&stream));
 
     size_t memSize = N * sizeof(float);
+
     // Allocate pinned host memory for h_a and h_result
     float* h_a;
     float* h_result;
@@ -163,7 +164,10 @@ int main()
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
-            if (elapsedTime < lowerTime || lowerTime == 0.0f) {
+            if (elapsedTime < lowerTime) {
+                lowerTime = elapsedTime;
+            }
+            if (istep == skipBy) {
                 lowerTime = elapsedTime;
             }
         }

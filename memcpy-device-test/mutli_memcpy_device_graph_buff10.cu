@@ -37,6 +37,7 @@ int main()
     CUDA_CHECK(cudaStreamCreate(&stream));
 
     size_t memSize = N * sizeof(float);
+
     // Allocate pinned host memory for h_a and h_result
     float* h_a;
     float* h_result;
@@ -134,7 +135,6 @@ int main()
 
         // Launch the graph
         CUDA_CHECK(cudaGraphLaunch(graphExec, stream));
-
         // Wait for the graph execution to finish
         CUDA_CHECK(cudaStreamSynchronize(stream));
 
@@ -149,7 +149,10 @@ int main()
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
-            if (elapsedTime < lowerTime || lowerTime == 0.0f) {
+            if (elapsedTime < lowerTime) {
+                lowerTime = elapsedTime;
+            }
+            if (istep == skipBy) {
                 lowerTime = elapsedTime;
             }
         }

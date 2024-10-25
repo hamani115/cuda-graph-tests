@@ -92,7 +92,10 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
-            if (elapsedTime < lowerTime || lowerTime == 0.0f) {
+            if (elapsedTime < lowerTime) {
+                lowerTime = elapsedTime;
+            }
+            if (istep == skipBy) {
                 lowerTime = elapsedTime;
             }
         }
