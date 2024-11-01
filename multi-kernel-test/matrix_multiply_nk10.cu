@@ -86,7 +86,7 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
             if (elapsedTime < lowerTime) {
                 lowerTime = elapsedTime;
             }
-            if (istep == skipBy) {
+            if (i == skipBy) {
                 lowerTime = elapsedTime;
             }
         }

@@ -45,6 +45,8 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
     int skipBy = 0;
+    // float sumTime = 0.0f;          // For calculating mean
+    float sumTimeSquared = 0.0f;   // For calculating variance
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
 
@@ -89,21 +91,31 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
         // Time calculations
         if (i >= skipBy) {
             totalTime += elapsedTime;
+            // sumTime += elapsedTime;
+            sumTimeSquared += elapsedTime * elapsedTime;
+
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
             if (elapsedTime < lowerTime) {
                 lowerTime = elapsedTime;
             }
-            if (istep == skipBy) {
+            if (i == skipBy) {
                 lowerTime = elapsedTime;
             }
+            // Uncomment to see elapsed time per iteration
+            // std::cout << "Elapsed time " << i << ": " << elapsedTime << " ms" << std::endl;
         }
     }
 
+    // Calculate mean and standard deviation
+    float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
+    float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
+    float stdDevTime = sqrt(varianceTime);
+
     // Print out the time statistics
-    float averageTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
-    std::cout << "Average Time: " << averageTime << " ms" << std::endl;
+    std::cout << "Average Time: " << meanTime << " ms" << std::endl;
+    std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
