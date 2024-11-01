@@ -99,7 +99,7 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     }
 
     // Calculate mean and standard deviation
-    float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
+    float meanTime = (totalTime + firstTime) / (NSTEP - skipBy);
     float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
     float stdDevTime = sqrt(varianceTime);
 

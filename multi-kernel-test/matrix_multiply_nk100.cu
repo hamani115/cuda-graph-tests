@@ -98,7 +98,7 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     }
 
     // Calculate mean and standard deviation
-    float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
+    float meanTime = (totalTime + firstTime) / (NSTEP - skipBy);
     float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
     float stdDevTime = sqrt(varianceTime);
 
@@ -107,7 +107,7 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
-    std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
+    std::cout << "Total Time with Graph Creation: " << totalTime + firstTime << " ms" << std::endl;
 
     // Destroy the CUDA stream and events
     CUDA_CHECK(cudaStreamDestroy(stream));
