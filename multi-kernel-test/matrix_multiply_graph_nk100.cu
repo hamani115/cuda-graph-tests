@@ -28,8 +28,8 @@ __global__ void matMulKernel(float* A, float* B, float* C, int width) {
 void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     // Define block and grid sizes
     dim3 block(32, 32); // 1024 threads
-    // dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
-    dim3 grid(6,6); // 36 Blocks
+    dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
+    // dim3 grid(6,6); // 36 Blocks
 
     // Create CUDA stream
     cudaStream_t stream;
@@ -47,6 +47,7 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     int skipBy = 0;
     // float sumTime = 0.0f;          // For calculating mean
     float sumTimeSquared = 0.0f;   // For calculating variance
+    
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
 

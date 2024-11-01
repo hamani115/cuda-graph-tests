@@ -28,8 +28,8 @@ __global__ void matMulKernel(float* A, float* B, float* C, int width) {
 void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     // Define block and grid sizes
     dim3 block(32, 32);  // 1024 threads
-    // dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
-    dim3 grid(6, 6);  // 36 Blocks
+    dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
+    // dim3 grid(6, 6);  // 36 Blocks
 
     cudaStream_t stream;
     CUDA_CHECK(cudaStreamCreate(&stream));
@@ -44,6 +44,8 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     int skipBy = 0;
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
+    // float sumTime = 0.0f;          // For calculating mean
+    float sumTimeSquared = 0.0f;   // For calculating variance
 
     // Start recording time for first run
     CUDA_CHECK(cudaEventRecord(start, stream));
@@ -80,6 +82,9 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
         // Time calculations
         if (j >= skipBy) {
             totalTime += elapsedTime;
+            // sumTime += elapsedTime;
+            sumTimeSquared += elapsedTime * elapsedTime;
+
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
@@ -92,12 +97,17 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
         }
     }
 
-    // Print time statistics
-    float averageTime = (totalTime + firstTime) / (NSTEP - skipBy);
-    std::cout << "Average Time: " << averageTime << " ms" << std::endl;
+    // Calculate mean and standard deviation
+    float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
+    float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
+    float stdDevTime = sqrt(varianceTime);
+
+    // Print out the time statistics
+    std::cout << "Average Time: " << meanTime << " ms" << std::endl;
+    std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
-    std::cout << "Total Time without first run: " << totalTime << " ms" << std::endl;
-    std::cout << "Total Time with first run: " << (totalTime + firstTime) << " ms" << std::endl;
+    std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
+    std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
 
     // Destroy the CUDA stream and events
     CUDA_CHECK(cudaStreamDestroy(stream));
