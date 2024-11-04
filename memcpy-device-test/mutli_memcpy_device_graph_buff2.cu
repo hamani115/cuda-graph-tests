@@ -13,7 +13,7 @@
 // Here you can set the device ID
 #define MYDEVICE 0
 
-#define N (1 << 12)  // 4096 elements
+#define N (1 << 12)  // Size of the arrays (4096 elements)
 #define NSTEP 10000
 
 // CUDA kernel to add 10 arrays element-wise

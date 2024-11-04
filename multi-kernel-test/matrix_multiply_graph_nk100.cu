@@ -45,6 +45,7 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
     int skipBy = 0;
+    std::vector<float> times;
     // float sumTime = 0.0f;          // For calculating mean
     float sumTimeSquared = 0.0f;   // For calculating variance
     
@@ -92,6 +93,7 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
         // Time calculations
         if (i >= skipBy) {
             totalTime += elapsedTime;
+            times.push_back(elapsedTime);
             // sumTime += elapsedTime;
             sumTimeSquared += elapsedTime * elapsedTime;
 
@@ -111,12 +113,25 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
 
     // Calculate mean and standard deviation
     float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
-    float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
+    float sumSq = 0.0f;
+    for (int i = 0; i < times.size(); i++) {
+        sumSq += (times[i] - meanTime) * (times[i] - meanTime);
+    }
+    float varianceTime = sumTimeSquared / (NSTEP - skipBy);
     float stdDevTime = sqrt(varianceTime);
+    
+    float varianceTime2 = sumSq / (NSTEP - skipBy);
+    float stdDevTime2 = sqrt(varianceTime2);
+
+    // float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
+    // float stdDevTime = sqrt(varianceTime);
 
     // Print out the time statistics
     std::cout << "Average Time: " << meanTime << " ms" << std::endl;
+    std::cout << "Variance: " << varianceTime << " ms" << std::endl;
     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
+    std::cout << "Variance2: " << varianceTime2 << " ms" << std::endl;
+    std::cout << "Standard Deviation2: " << stdDevTime2 << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
