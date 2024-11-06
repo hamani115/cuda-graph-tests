@@ -127,7 +127,7 @@ int main(){
     std::cout << "Iterations: " << iterations << std::endl;
     std::cout << "Average Execution Time per Iteration: " << (execTime / iterations) << "ms" << std::endl;
     std::cout << "Total Time: " << execTime + firstCreateTime << "ms" << std::endl;
-    std::cout << "New Average Execution Time per Iteration: " << ((execTime + firstCreateTime) / (iterations + 1)) << "ms" << std::endl;
+    std::cout << "New Average Execution Time per Iteration: " << ((execTime + firstCreateTime) / (iterations)) << "ms" << std::endl;
 
     // Verify results
     constexpr double expected = initValue * 2.0 + 3;
