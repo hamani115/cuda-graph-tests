@@ -162,8 +162,8 @@ int main(){
     constexpr int iterations = 1000;
     for(int i = 0; i < iterations; ++i){
         CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
-        CUDA_CHECK(cudaStreamSynchronize(captureStream));
     }
+    CUDA_CHECK(cudaStreamSynchronize(captureStream));
 
     // CUDA_CHECK(cudaStreamSynchronize(captureStream));
     CUDA_CHECK(cudaEventRecord(execStop, captureStream));
