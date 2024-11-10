@@ -176,14 +176,15 @@ int main(){
     double stdDevTime3 = sqrt(varianceTime3);
 
     std::cout << "New Measurements: " << std::endl;
-    std::cout << "Average Time with Graph: " << meanTime << " ms" << std::endl;
-    std::cout << "Average Time without Graph: " << (totalTime) / (iterations - 1 - skipBy)  << " ms" << std::endl;
+    std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
+    std::cout << "Average Time without firstRun: " << (totalTime) / (iterations - 1 - skipBy)  << " ms" << std::endl;
     std::cout << "Variance: " << varianceTime3 << " ms" << std::endl;
     std::cout << "Standard Deviation: " << stdDevTime3 << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
-    std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
-    std::cout << "Total Time with Graph Creation: " << totalTime + firstCreateTime << " ms" << std::endl;
+    std::cout << "Total Time without first Run: " << totalTime << " ms" << std::endl;
+    std::cout << "Total Time with first Run: " << totalTime + firstCreateTime << " ms" << std::endl;
 
+    std::cout << "Old measurements: " << std::endl;
     std::cout << "First Run: " << firstCreateTime << "ms" << std::endl;
     std::cout << "Iterations: " << iterations << std::endl;
     // std::cout << "Average Execution Time per Iteration: " << (execTime / iterations) << "ms" << std::endl;
