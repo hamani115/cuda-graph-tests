@@ -226,6 +226,7 @@ int main(){
     std::cout << "=======Setup=======" << std::endl;
     std::cout << "Iterations: " << iterations << std::endl;
     std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Kernel: " << "kernelA, kernelB, kernelC" << std::endl;
     std::cout << "Number of Blocks: " << numOfBlocks << std::endl;
     std::cout << "Threads per Block: " << threadsPerBlock << std::endl;
     std::cout << "Array Size: " << arraySize << std::endl;
