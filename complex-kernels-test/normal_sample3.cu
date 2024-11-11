@@ -174,8 +174,16 @@ int main(){
         varianceTime3 = 0.0;
     }
     double stdDevTime3 = sqrt(varianceTime3);
-
-    std::cout << "New Measurements: " << std::endl;
+    
+    std::cout << "=======Setup=======" << std::endl;
+    std::cout << "Iterations: " << iterations << std::endl;
+    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Kernel: " << "kernelA, kernelB, kernelC" << std::endl;
+    std::cout << "Number of Blocks: " << numOfBlocks << std::endl;
+    std::cout << "Threads per Block: " << threadsPerBlock << std::endl;
+    std::cout << "Array Size: " << arraySize << std::endl;
+    std::cout << "=======Results=======" << std::endl;
+    std::cout << "First Run: " << firstCreateTime << "ms" << std::endl;
     std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
     std::cout << "Average Time without firstRun: " << ((totalTime) / (iterations - 1 - skipBy))  << " ms" << std::endl;
     std::cout << "Variance: " << varianceTime3 << " ms" << std::endl;
@@ -184,9 +192,9 @@ int main(){
     std::cout << "Total Time without firstRun: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with firstRun: " << totalTime + firstCreateTime << " ms" << std::endl;
 
-    std::cout << "Old measurements: " << std::endl;
-    std::cout << "First Run: " << firstCreateTime << "ms" << std::endl;
-    std::cout << "Iterations: " << iterations << std::endl;
+    // std::cout << "Old measurements: " << std::endl;
+    // std::cout << "First Run: " << firstCreateTime << "ms" << std::endl;
+    // std::cout << "Iterations: " << iterations << std::endl;
     // std::cout << "Average Execution Time per Iteration: " << (execTime / iterations) << "ms" << std::endl;
     // std::cout << "Total Time: " << execTime + firstCreateTime << "ms" << std::endl;
     // std::cout << "New Average Execution Time per Iteration: " << ((execTime + firstCreateTime) / (iterations)) << "ms" << std::endl;
