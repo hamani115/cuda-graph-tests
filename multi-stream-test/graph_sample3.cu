@@ -232,6 +232,7 @@ int main(){
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
 
+    std::cout << "Old measurements: " << std::endl;
     std::cout << "Graph Creation Time: " << graphCreateTime << "ms" << std::endl;
     std::cout << "Iterations: " << iterations << std::endl;
     // std::cout << "Average Execution Time per Iteration: " << (execTime / iterations) << "ms" << std::endl;
