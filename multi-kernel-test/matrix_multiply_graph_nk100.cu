@@ -155,12 +155,22 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     double stdDevTime3 = sqrt(varianceTime3);
 
     // Print out the time statistics
-    std::cout << "Average Time: " << meanTime << " ms" << std::endl;
+    std::cout << "=======Setup=======" << std::endl;
+    std::cout << "Iterations: " << NSTEP << std::endl;
+    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Kernels: " << NKERNEL << std::endl;
+    std::cout << "Block Size: " << block.x << " x " << block.y << std::endl;
+    std::cout << "Grid Size: " << grid.x << " x " << grid.y << std::endl;
+    std::cout << "Matrix Size: " << width << " x " << width << std::endl;
+    std::cout << "=======Results=======" << std::endl;
+    std::cout << "Graph Creation: " << graphCreateTime << std::endl;
+    std::cout << "Average Time with Graph: " << meanTime << " ms" << std::endl;
+    std::cout << "Average Time without Graph: " << (totalTime / (NSTEP - skipBy)) << " ms" << std::endl;
     // std::cout << "Variance: " << varianceTime << " ms" << std::endl;
     // std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     // std::cout << "Variance2: " << varianceTime2 << " ms" << std::endl;
     // std::cout << "Standard Deviation2: " << stdDevTime2 << " ms" << std::endl;
-    std::cout << "Variance3: " << varianceTime3 << " ms" << std::endl;
+    std::cout << "Variance3: " <<  varianceTime3 << meanTime << " ms" << std::endl;
     std::cout << "Standard Deviation3: " << stdDevTime3 << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;

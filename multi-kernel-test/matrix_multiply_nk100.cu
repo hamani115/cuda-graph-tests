@@ -36,12 +36,8 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
 
     // Create CUDA events
     cudaEvent_t start, stop;
-    float elapsedTime = 0.0f;
     float firstTime = 0.0f;
-    float totalTime = 0.0f;
-    float upperTime = 0.0f;
-    float lowerTime = 0.0f;
-    int skipBy = 0;
+
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
     // float sumTime = 0.0f;          // For calculating mean
@@ -61,6 +57,17 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     CUDA_CHECK(cudaEventRecord(stop, stream));
     CUDA_CHECK(cudaEventSynchronize(stop));
     CUDA_CHECK(cudaEventElapsedTime(&firstTime, start, stop));
+
+    float elapsedTime = 0.0f;
+    float totalTime = 0.0f;
+    float upperTime = 0.0f;
+    float lowerTime = 0.0f;
+    int skipBy = 0;
+
+    // Variables for Welford's algorithm
+    double mean = 0.0;
+    double M2 = 0.0;
+    int count = 0;
 
     // Execute the kernel multiple times and measure performance
     for (int j = 0; j < NSTEP - 1; j++) {
@@ -82,8 +89,13 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
         // Time calculations
         if (j >= skipBy) {
             totalTime += elapsedTime;
-            // sumTime += elapsedTime;
-            sumTimeSquared += elapsedTime * elapsedTime;
+            
+            // Welford's algorithm for calculating mean and variance
+            count++;
+            double delta = elapsedTime - mean;
+            mean += delta / count;
+            double delta2 = elapsedTime - mean;
+            M2 += delta * delta2;
 
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
@@ -99,15 +111,33 @@ void matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
 
     // Calculate mean and standard deviation
     float meanTime = (totalTime + firstTime) / (NSTEP - skipBy);
-    float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
-    float stdDevTime = sqrt(varianceTime);
+    double varianceTime = 0.0;
+    if (count > 1) {
+        varianceTime = M2 / (count - 1);
+    }
+    // Ensure variance is not negative due to floating-point errors
+    if (varianceTime < 0.0) {
+        varianceTime = 0.0;
+    }
+    double stdDevTime = sqrt(varianceTime);
 
     // Print out the time statistics
-    std::cout << "Average Time: " << meanTime << " ms" << std::endl;
+    std::cout << "=======Setup=======" << std::endl;
+    std::cout << "Iterations: " << NSTEP << std::endl;
+    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Kernels: " << NKERNEL << std::endl;
+    std::cout << "Block Size: " << block.x << " x " << block.y << std::endl;
+    std::cout << "Grid Size: " << grid.x << " x " << grid.y << std::endl;
+    std::cout << "Matrix Size: " << width << " x " << width << std::endl;
+    std::cout << "=======Results=======" << std::endl;
+    std::cout << "First Run: " << firstTime << std::endl;
+    std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
+    std::cout << "Average Time without firstRun: " << (totalTime / (NSTEP - skipBy)) << " ms" << std::endl;
+    std::cout << "Variance: " <<  varianceTime << " ms" << std::endl;
     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
-    std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
-    std::cout << "Total Time with Graph Creation: " << totalTime + firstTime << " ms" << std::endl;
+    std::cout << "Total Time without firstRun: " << totalTime << " ms" << std::endl;
+    std::cout << "Total Time with firstRun: " << totalTime + firstTime << " ms" << std::endl;
 
     // Destroy the CUDA stream and events
     CUDA_CHECK(cudaStreamDestroy(stream));

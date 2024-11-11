@@ -121,6 +121,16 @@ int main()
     CUDA_CHECK(cudaEventSynchronize(stop));
     CUDA_CHECK(cudaEventElapsedTime(&firstTime, start, stop));
 
+    float elapsedTime = 0.0f;
+    float totalTime = 0.0f;
+    float upperTime = 0.0f;
+    float lowerTime = 0.0f;
+    int skipBy = 100;
+    // Variables for Welford's algorithm
+    double mean = 0.0;
+    double M2 = 0.0;
+    int count = 0;
+
     for (int istep = 0; istep < NSTEP - 1; istep++) {
         // Start Timer for each run
         CUDA_CHECK(cudaEventRecord(start, stream));
@@ -160,6 +170,14 @@ int main()
         // Time Calculations
         if (istep >= skipBy) {
             totalTime += elapsedTime;
+
+            // Welford's algorithm for calculating mean and variance
+            count++;
+            double delta = elapsedTime - mean;
+            mean += delta / count;
+            double delta2 = elapsedTime - mean;
+            M2 += delta * delta2;
+
             if (elapsedTime > upperTime) {
                 upperTime = elapsedTime;
             }
@@ -172,12 +190,34 @@ int main()
         }
     }
 
-    // Print timing statistics
-    float AverageTime = (totalTime + firstTime) / (NSTEP - skipBy);
-    std::cout << "Average Time: " << AverageTime << " ms" << std::endl;
+    // Calculate mean and standard deviation
+    float meanTime = (totalTime + firstTime) / (NSTEP - skipBy);
+    double varianceTime = 0.0;
+    if (count > 1) {
+        varianceTime = M2 / (count - 1);
+    }
+    // Ensure variance is not negative due to floating-point errors
+    if (varianceTime < 0.0) {
+        varianceTime = 0.0;
+    }
+    double stdDevTime = sqrt(varianceTime);
+
+    // Print out the time statistics
+    std::cout << "=======Setup=======" << std::endl;
+    std::cout << "Iterations: " << NSTEP << std::endl;
+    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Kernels: " << 1 << std::endl;
+    std::cout << "Block Size: " << threadsPerBlock << std::endl;
+    std::cout << "Grid Size: " << blocksPerGrid << std::endl;
+    std::cout << "=======Results=======" << std::endl;
+    std::cout << "First Run: " << firstTime << std::endl;
+    std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
+    std::cout << "Average Time without firstRun: " << (totalTime / (NSTEP - skipBy)) << " ms" << std::endl;
+    std::cout << "Variance: " <<  varianceTime << " ms" << std::endl;
+    std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
-    std::cout << "Total Time without first run: " << totalTime << " ms" << std::endl;
-    std::cout << "Total Time with first run: " << (totalTime + firstTime) << " ms" << std::endl;
+    std::cout << "Total Time without firstRun: " << totalTime << " ms" << std::endl;
+    std::cout << "Total Time with firstRun: " << totalTime + firstTime << " ms" << std::endl;
 
     // **Print h_result before testing**
     std::cout << "h_result contents before verification:\n";
