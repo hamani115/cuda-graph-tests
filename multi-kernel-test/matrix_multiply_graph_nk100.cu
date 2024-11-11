@@ -46,9 +46,9 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
     int skipBy = 0;
-    std::vector<float> times;
+    // std::vector<float> times;
     // float sumTime = 0.0f;          // For calculating mean
-    float sumTimeSquared = 0.0f;   // For calculating variance
+    // float sumTimeSquared = 0.0f;   // For calculating variance
     
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
@@ -79,8 +79,8 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     CUDA_CHECK(cudaEventRecord(stop, stream));
     CUDA_CHECK(cudaEventSynchronize(stop));
     CUDA_CHECK(cudaEventElapsedTime(&graphCreateTime, start, stop));
-    times.push_back(graphCreateTime);
-    sumTimeSquared += graphCreateTime * graphCreateTime;
+    // times.push_back(graphCreateTime);
+    // sumTimeSquared += graphCreateTime * graphCreateTime;
 
     // Execute the graph multiple times and measure performance
     for (int i = 0; i < NSTEP - 1; i++) {
@@ -101,10 +101,11 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
         // Time calculations
         if (i >= skipBy) {
             totalTime += elapsedTime;
-            times.push_back(elapsedTime);
+            // times.push_back(elapsedTime);
             // sumTime += elapsedTime;
-            sumTimeSquared += elapsedTime * elapsedTime;
+            // sumTimeSquared += elapsedTime * elapsedTime;
 
+            // Welford's algorithm for calculating mean and variance
             count++;
             double delta = elapsedTime - mean;
             mean += delta / count;
@@ -127,21 +128,21 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
 
     // Calculate mean and standard deviation
     float meanTime = (totalTime + graphCreateTime) / (NSTEP - skipBy);
-    float sumSq = 0.0f;
-    for (int i = 0; i < times.size(); i++) {
-        sumSq += (times[i] - meanTime) * (times[i] - meanTime);
-    }
+    // float sumSq = 0.0f;
+    // for (int i = 0; i < times.size(); i++) {
+    //     sumSq += (times[i] - meanTime) * (times[i] - meanTime);
+    // }
     // float varianceTime = sumTimeSquared / (NSTEP - skipBy);
     // float stdDevTime = sqrt(varianceTime);
     
-    float varianceTime2 = sumSq / (NSTEP - skipBy);
-    float stdDevTime2 = sqrt(varianceTime2);
+    // float varianceTime2 = sumSq / (NSTEP - skipBy);
+    // float stdDevTime2 = sqrt(varianceTime2);
     
     // Naive Algo
-    float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
-    float stdDevTime = sqrt(varianceTime);
+    // float varianceTime = (sumTimeSquared / (NSTEP - skipBy)) - (meanTime * meanTime);
+    // float stdDevTime = sqrt(varianceTime);
 
-    // Welford Algo
+    //  Welford's algorithm for calculating variance
     double varianceTime3 = 0.0;
     if (count > 1) {
         varianceTime3 = M2 / (count - 1);
@@ -155,10 +156,10 @@ void matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
 
     // Print out the time statistics
     std::cout << "Average Time: " << meanTime << " ms" << std::endl;
-    std::cout << "Variance: " << varianceTime << " ms" << std::endl;
-    std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
-    std::cout << "Variance2: " << varianceTime2 << " ms" << std::endl;
-    std::cout << "Standard Deviation2: " << stdDevTime2 << " ms" << std::endl;
+    // std::cout << "Variance: " << varianceTime << " ms" << std::endl;
+    // std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
+    // std::cout << "Variance2: " << varianceTime2 << " ms" << std::endl;
+    // std::cout << "Standard Deviation2: " << stdDevTime2 << " ms" << std::endl;
     std::cout << "Variance3: " << varianceTime3 << " ms" << std::endl;
     std::cout << "Standard Deviation3: " << stdDevTime3 << " ms" << std::endl;
     std::cout << "Time Spread: " << upperTime << " - " << lowerTime << " ms" << std::endl;
