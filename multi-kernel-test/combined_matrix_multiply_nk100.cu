@@ -6,9 +6,9 @@
 // Local headers
 #include "../cuda_check.h"
 
-#define N 64        // Matrix dimensions (64x64)
-#define NSTEP 100000
-#define NKERNEL 100 // Number of kernels to launch per iteration
+#define N 1024        // Matrix dimensions (N x N)
+#define NSTEP 500
+#define NKERNEL 10 // Number of kernels to launch per iteration
 #define SKIPBY 0
 
 // CUDA kernel for matrix multiplication
@@ -25,7 +25,36 @@ __global__ void matMulKernel(float* A, float* B, float* C, int width) {
 }
 
 // Function to perform matrix multiplication without using CUDA Graphs
-float matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
+float matrixMultiplyNoGraph(int width) {
+    // Allocate host memory
+    float* h_A = (float*)malloc(width * width * sizeof(float));
+    float* h_B = (float*)malloc(width * width * sizeof(float));
+    float* h_C = (float*)malloc(width * width * sizeof(float));
+
+    // Check host memory allocation
+    if (!h_A || !h_B || !h_C) {
+        fprintf(stderr, "Failed to allocate host memory\n");
+        return EXIT_FAILURE;
+    }
+
+    // Initialize matrices using index i
+    for (int i = 0; i < width * width; i++) {
+        h_A[i] = static_cast<float>(i);
+        h_B[i] = static_cast<float>(i);
+    }
+
+    // Allocate device memory
+    float* d_A;
+    float* d_B;
+    float* d_C;
+    CUDA_CHECK(cudaMalloc(&d_A, width * width * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_B, width * width * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_C, width * width * sizeof(float)));
+
+    // Copy matrices to device
+    CUDA_CHECK(cudaMemcpy(d_A, h_A, width * width * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_B, h_B, width * width * sizeof(float), cudaMemcpyHostToDevice));
+
     // Define block and grid sizes
     dim3 block(32, 32);  // 1024 threads
     dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
@@ -44,7 +73,6 @@ float matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     float totalTime = 0.0f;
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
-    // int skipBy = 0;
 
     // Variables for Welford's algorithm
     double mean = 0.0;
@@ -56,7 +84,7 @@ float matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
 
     // Begin first run
     for (int i = 0; i < NKERNEL; i++) {  // Run NKERNEL iterations
-        matMulKernel<<<grid, block, 0, stream>>>(A, B, C, width);
+        matMulKernel<<<grid, block, 0, stream>>>(d_A, d_B, d_C, width);
     }
     CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
     CUDA_CHECK(cudaStreamSynchronize(stream));  // Ensure all kernels finish
@@ -73,7 +101,7 @@ float matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
 
         // Launch the kernel multiple times
         for (int i = 0; i < NKERNEL; i++) {  // Run NKERNEL iterations
-            matMulKernel<<<grid, block, 0, stream>>>(A, B, C, width);
+            matMulKernel<<<grid, block, 0, stream>>>(d_A, d_B, d_C, width);
         }
         CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
         CUDA_CHECK(cudaStreamSynchronize(stream));  // Ensure all kernels finish
@@ -126,17 +154,57 @@ float matrixMultiplyNoGraph(float* A, float* B, float* C, int width) {
     std::cout << "Total Time without firstRun: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with firstRun: " << totalTime + firstTime << " ms" << std::endl;
 
+    // Copy result back to host (optional, not used in this context)
+    CUDA_CHECK(cudaMemcpy(h_C, d_C, width * width * sizeof(float), cudaMemcpyDeviceToHost));
+
     // Destroy the CUDA stream and events
     CUDA_CHECK(cudaStreamDestroy(stream));
     CUDA_CHECK(cudaEventDestroy(start));
     CUDA_CHECK(cudaEventDestroy(stop));
+
+    // Free device and host memory
+    free(h_A);
+    free(h_B);
+    free(h_C);
+    CUDA_CHECK(cudaFree(d_A));
+    CUDA_CHECK(cudaFree(d_B));
+    CUDA_CHECK(cudaFree(d_C));
 
     // Return total time including first run
     return totalTime + firstTime;
 }
 
 // Function to perform matrix multiplication using CUDA Graphs
-float matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
+float matrixMultiplyWithGraph(int width) {
+    // Allocate host memory
+    float* h_A = (float*)malloc(width * width * sizeof(float));
+    float* h_B = (float*)malloc(width * width * sizeof(float));
+    float* h_C = (float*)malloc(width * width * sizeof(float));
+
+    // Check host memory allocation
+    if (!h_A || !h_B || !h_C) {
+        fprintf(stderr, "Failed to allocate host memory\n");
+        return EXIT_FAILURE;
+    }
+
+    // Initialize matrices using index i
+    for (int i = 0; i < width * width; i++) {
+        h_A[i] = static_cast<float>(i);
+        h_B[i] = static_cast<float>(i);
+    }
+
+    // Allocate device memory
+    float* d_A;
+    float* d_B;
+    float* d_C;
+    CUDA_CHECK(cudaMalloc(&d_A, width * width * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_B, width * width * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_C, width * width * sizeof(float)));
+
+    // Copy matrices to device
+    CUDA_CHECK(cudaMemcpy(d_A, h_A, width * width * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_B, h_B, width * width * sizeof(float), cudaMemcpyHostToDevice));
+
     // Define block and grid sizes
     dim3 block(32, 32); // 1024 threads
     dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
@@ -154,7 +222,6 @@ float matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     float totalTime = 0.0f;
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
-    // int skipBy = 0;
 
     // Variables for Welford's algorithm
     double mean = 0.0;
@@ -172,7 +239,7 @@ float matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
 
     // Enqueue kernel launches into the graph
     for (int i = 0; i < NKERNEL; i++) {
-        matMulKernel<<<grid, block, 0, stream>>>(A, B, C, width);
+        matMulKernel<<<grid, block, 0, stream>>>(d_A, d_B, d_C, width);
     }
     // Check for any kernel launch errors
     CUDA_CHECK(cudaGetLastError());
@@ -245,6 +312,9 @@ float matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
 
+    // Copy result back to host (optional, not used in this context)
+    CUDA_CHECK(cudaMemcpy(h_C, d_C, width * width * sizeof(float), cudaMemcpyDeviceToHost));
+
     // Cleanup
     CUDA_CHECK(cudaGraphDestroy(graph));
     CUDA_CHECK(cudaGraphExecDestroy(graphExec));
@@ -252,45 +322,24 @@ float matrixMultiplyWithGraph(float* A, float* B, float* C, int width) {
     CUDA_CHECK(cudaEventDestroy(start));
     CUDA_CHECK(cudaEventDestroy(stop));
 
+    // Free device and host memory
+    free(h_A);
+    free(h_B);
+    free(h_C);
+    CUDA_CHECK(cudaFree(d_A));
+    CUDA_CHECK(cudaFree(d_B));
+    CUDA_CHECK(cudaFree(d_C));
+
     // Return total time including graph creation
     return totalTime + graphCreateTime;
 }
 
 int main() {
-    // Allocate host memory
-    float* h_A = (float*)malloc(N * N * sizeof(float));
-    float* h_B = (float*)malloc(N * N * sizeof(float));
-    float* h_C = (float*)malloc(N * N * sizeof(float));
-
-    // Check host memory allocation
-    if (!h_A || !h_B || !h_C) {
-        fprintf(stderr, "Failed to allocate host memory\n");
-        return EXIT_FAILURE;
-    }
-
-    // Initialize matrices using index i
-    for (int i = 0; i < N * N; i++) {
-        h_A[i] = static_cast<float>(i);
-        h_B[i] = static_cast<float>(i);
-    }
-
-    // Allocate device memory
-    float* d_A;
-    float* d_B;
-    float* d_C;
-    CUDA_CHECK(cudaMalloc(&d_A, N * N * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_B, N * N * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_C, N * N * sizeof(float)));
-
-    // Copy matrices to device
-    CUDA_CHECK(cudaMemcpy(d_A, h_A, N * N * sizeof(float), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_B, h_B, N * N * sizeof(float), cudaMemcpyHostToDevice));
-
     // Measure time for non-graph implementation
-    float nonGraphTotalTime = matrixMultiplyNoGraph(d_A, d_B, d_C, N);
+    float nonGraphTotalTime = matrixMultiplyNoGraph(N);
 
     // Measure time for graph implementation
-    float graphTotalTime = matrixMultiplyWithGraph(d_A, d_B, d_C, N);
+    float graphTotalTime = matrixMultiplyWithGraph(N);
 
     // Compute the difference
     float difference = nonGraphTotalTime - graphTotalTime;
@@ -302,17 +351,6 @@ int main() {
     std::cout << "Difference: " << difference << " ms" << std::endl;
     std::cout << "Difference per step: " << diffPerStep << " ms" << std::endl;
     std::cout << "Difference percentage: " << diffPercentage << "%" << std::endl;
-
-    // Copy result back to host (optional, not used in this context)
-    CUDA_CHECK(cudaMemcpy(h_C, d_C, N * N * sizeof(float), cudaMemcpyDeviceToHost));
-
-    // Cleanup
-    free(h_A);
-    free(h_B);
-    free(h_C);
-    CUDA_CHECK(cudaFree(d_A));
-    CUDA_CHECK(cudaFree(d_B));
-    CUDA_CHECK(cudaFree(d_C));
 
     return 0;
 }
