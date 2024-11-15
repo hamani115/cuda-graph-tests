@@ -8,7 +8,7 @@
 
 #define N 1024        // Matrix dimensions (N x N)
 #define NSTEP 500
-#define NKERNEL 10 // Number of kernels to launch per iteration
+#define NKERNEL 100 // Number of kernels to launch per iteration
 #define SKIPBY 0
 
 // CUDA kernel for matrix multiplication

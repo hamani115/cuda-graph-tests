@@ -20,12 +20,12 @@
 
 // CUDA kernel to add 10 arrays element-wise
 __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5,
-                           float *a6, float *a7, float *a8, float *a9, float *a10,
+                        //    float *a6, float *a7, float *a8, float *a9, float *a10,
                            float *result) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < N) {
-        result[i] = a1[i] + a2[i] + a3[i] + a4[i] + a5[i]
-                  + a6[i] + a7[i] + a8[i] + a9[i] + a10[i];
+        result[i] = a1[i] + a2[i] + a3[i] + a4[i] + a5[i];
+                //   + a6[i] + a7[i] + a8[i] + a9[i] + a10[i];
     }
 }
 
@@ -49,7 +49,7 @@ float runWithoutGraph() {
 
     // Pointers for device memory
     float *d_result;
-    float *d_a1, *d_a2, *d_a3, *d_a4, *d_a5, *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
+    float *d_a1, *d_a2, *d_a3, *d_a4, *d_a5;//, *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
 
     // Create a CUDA stream
     cudaStream_t stream;
@@ -61,11 +61,11 @@ float runWithoutGraph() {
     CUDA_CHECK(cudaMallocAsync(&d_a3, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_a4, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_a5, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_result, memSize, stream)); // Allocate device memory for result
 
     // Initialize d_result to zero
@@ -93,16 +93,16 @@ float runWithoutGraph() {
     CUDA_CHECK(cudaMemcpyAsync(d_a3, d_a2, memSize, cudaMemcpyDeviceToDevice, stream));
     CUDA_CHECK(cudaMemcpyAsync(d_a4, d_a3, memSize, cudaMemcpyDeviceToDevice, stream));
     CUDA_CHECK(cudaMemcpyAsync(d_a5, d_a4, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
 
     // Single kernel launch after all memcpys
     add_arrays<<<blocksPerGrid, threadsPerBlock, 0, stream>>>(
         d_a1, d_a2, d_a3, d_a4, d_a5,
-        d_a6, d_a7, d_a8, d_a9, d_a10,
+        // d_a6, d_a7, d_a8, d_a9, d_a10,
         d_result);
     CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
 
@@ -136,16 +136,16 @@ float runWithoutGraph() {
         CUDA_CHECK(cudaMemcpyAsync(d_a3, d_a2, memSize, cudaMemcpyDeviceToDevice, stream));
         CUDA_CHECK(cudaMemcpyAsync(d_a4, d_a3, memSize, cudaMemcpyDeviceToDevice, stream));
         CUDA_CHECK(cudaMemcpyAsync(d_a5, d_a4, memSize, cudaMemcpyDeviceToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
+        // CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
+        // CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
+        // CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
+        // CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
+        // CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
 
         // Single kernel launch after all memcpys
         add_arrays<<<blocksPerGrid, threadsPerBlock, 0, stream>>>(
             d_a1, d_a2, d_a3, d_a4, d_a5,
-            d_a6, d_a7, d_a8, d_a9, d_a10,
+            // d_a6, d_a7, d_a8, d_a9, d_a10,
             d_result);
         CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
 
@@ -205,7 +205,7 @@ float runWithoutGraph() {
     // Verify the data on the host is correct
     for (int i = 0; i < N; ++i)
     {
-        float expected = i * 10.0f; // Since each a_i contains i, and we sum over 10 arrays
+        float expected = i * 5.0f; // Since each a_i contains i, and we sum over 10 arrays
         if (h_result[i] != expected) {
             std::cerr << "Mismatch at index " << i << ": expected " << expected << ", got " << h_result[i] << std::endl;
             assert(false);
@@ -223,11 +223,11 @@ float runWithoutGraph() {
     CUDA_CHECK(cudaFree(d_a3));
     CUDA_CHECK(cudaFree(d_a4));
     CUDA_CHECK(cudaFree(d_a5));
-    CUDA_CHECK(cudaFree(d_a6));
-    CUDA_CHECK(cudaFree(d_a7));
-    CUDA_CHECK(cudaFree(d_a8));
-    CUDA_CHECK(cudaFree(d_a9));
-    CUDA_CHECK(cudaFree(d_a10));
+    // CUDA_CHECK(cudaFree(d_a6));
+    // CUDA_CHECK(cudaFree(d_a7));
+    // CUDA_CHECK(cudaFree(d_a8));
+    // CUDA_CHECK(cudaFree(d_a9));
+    // CUDA_CHECK(cudaFree(d_a10));
     CUDA_CHECK(cudaFree(d_result));
 
     // Return total time including first run
@@ -254,7 +254,7 @@ float runWithGraph() {
 
     // Allocate the device memory
     float *d_a1, *d_a2, *d_a3, *d_a4, *d_a5;
-    float *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
+    // float *d_a6, *d_a7, *d_a8, *d_a9, *d_a10;
     float *d_result;
 
     // Create a CUDA stream
@@ -266,11 +266,11 @@ float runWithGraph() {
     CUDA_CHECK(cudaMallocAsync(&d_a3, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_a4, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_a5, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, stream));
-    CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a6, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a7, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a8, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a9, memSize, stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_a10, memSize, stream));
     CUDA_CHECK(cudaMallocAsync(&d_result, memSize, stream));
 
     // Set up grid and block dimensions
@@ -299,15 +299,15 @@ float runWithGraph() {
     CUDA_CHECK(cudaMemcpyAsync(d_a3, d_a2, memSize, cudaMemcpyDeviceToDevice, stream));
     CUDA_CHECK(cudaMemcpyAsync(d_a4, d_a3, memSize, cudaMemcpyDeviceToDevice, stream));
     CUDA_CHECK(cudaMemcpyAsync(d_a5, d_a4, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a6, d_a5, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a7, d_a6, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a8, d_a7, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a9, d_a8, memSize, cudaMemcpyDeviceToDevice, stream));
+    // CUDA_CHECK(cudaMemcpyAsync(d_a10, d_a9, memSize, cudaMemcpyDeviceToDevice, stream));
 
     // Single kernel launch after all memcpys
     add_arrays<<<blocksPerGrid, threadsPerBlock, 0, stream>>>(d_a1, d_a2, d_a3, d_a4, d_a5,
-                                                              d_a6, d_a7, d_a8, d_a9, d_a10,
+                                                            //   d_a6, d_a7, d_a8, d_a9, d_a10,
                                                               d_result);
     CUDA_CHECK(cudaGetLastError());  // Check for kernel launch errors
 
@@ -395,7 +395,7 @@ float runWithGraph() {
     // Verify the data on the host is correct
     for (int i = 0; i < N; ++i)
     {
-        float expected = i * 10.0f; // Since each a_i contains i, and we sum over 10 arrays
+        float expected = i * 5.0f; // Since each a_i contains i, and we sum over 10 arrays
         if (h_result[i] != expected) {
             std::cerr << "Mismatch at index " << i << ": expected " << expected << ", got " << h_result[i] << std::endl;
             assert(false);
@@ -415,11 +415,11 @@ float runWithGraph() {
     CUDA_CHECK(cudaFree(d_a3));
     CUDA_CHECK(cudaFree(d_a4));
     CUDA_CHECK(cudaFree(d_a5));
-    CUDA_CHECK(cudaFree(d_a6));
-    CUDA_CHECK(cudaFree(d_a7));
-    CUDA_CHECK(cudaFree(d_a8));
-    CUDA_CHECK(cudaFree(d_a9));
-    CUDA_CHECK(cudaFree(d_a10));
+    // CUDA_CHECK(cudaFree(d_a6));
+    // CUDA_CHECK(cudaFree(d_a7));
+    // CUDA_CHECK(cudaFree(d_a8));
+    // CUDA_CHECK(cudaFree(d_a9));
+    // CUDA_CHECK(cudaFree(d_a10));
     CUDA_CHECK(cudaFree(d_result));
 
     // Return total time including graph creation
