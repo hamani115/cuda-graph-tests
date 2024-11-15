@@ -25,6 +25,7 @@
 
 #define N (1 << 12)  // 4096 elements
 #define NSTEP 10000  // Number of steps to run the test
+#define SKIPBY 100
 
 // CUDA kernel to add 10 arrays element-wise
 __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5,
@@ -139,7 +140,7 @@ float runWithoutGraph() {
     float totalTime = 0.0f;
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
-    int skipBy = 100;  // Number of initial iterations to skip in statistics
+    // int skipBy = 100;  // Number of initial iterations to skip in statistics
     double mean = 0.0;
     double M2 = 0.0;
     int count = 0;
@@ -194,7 +195,7 @@ float runWithoutGraph() {
         CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
         // Time Calculations
-        if (istep >= skipBy) {
+        if (istep >= SKIPBY) {
             totalTime += elapsedTime;
 
             // Welford's algorithm for calculating mean and variance
@@ -223,7 +224,7 @@ float runWithoutGraph() {
     // Print out the time statistics
     std::cout << "=======Setup (No Graph)=======" << std::endl;
     std::cout << "Iterations: " << NSTEP << std::endl;
-    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Skip By: " << SKIPBY << std::endl;
     std::cout << "Kernels: " << 1 << std::endl;
     std::cout << "Block Size: " << threadsPerBlock << std::endl;
     std::cout << "Grid Size: " << blocksPerGrid << std::endl;
@@ -231,7 +232,7 @@ float runWithoutGraph() {
     std::cout << "=======Results (No Graph)=======" << std::endl;
     std::cout << "First Run: " << firstTime << " ms" << std::endl;
     std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
-    std::cout << "Average Time without firstRun: " << (totalTime / (NSTEP - 1 - skipBy)) << " ms" << std::endl;
+    std::cout << "Average Time without firstRun: " << (totalTime / (NSTEP - 1 - SKIPBY)) << " ms" << std::endl;
     std::cout << "Variance: " << varianceTime << " ms^2" << std::endl;
     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
@@ -399,7 +400,7 @@ float runWithGraph() {
     float totalTime = 0.0f;
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
-    int skipBy = 100;  // Number of initial iterations to skip in statistics
+    // int skipBy = 100;  // Number of initial iterations to skip in statistics
     double mean = 0.0;
     double M2 = 0.0;
     int count = 0;
@@ -434,7 +435,7 @@ float runWithGraph() {
         CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
         // Time Calculations
-        if (istep >= skipBy) {
+        if (istep >= SKIPBY) {
             totalTime += elapsedTime;
 
             // Welford's algorithm for calculating mean and variance
@@ -463,7 +464,7 @@ float runWithGraph() {
     // Print out the time statistics
     std::cout << "=======Setup (With Graph)=======" << std::endl;
     std::cout << "Iterations: " << NSTEP << std::endl;
-    std::cout << "Skip By: " << skipBy << std::endl;
+    std::cout << "Skip By: " << SKIPBY << std::endl;
     std::cout << "Kernels: " << 1 << std::endl;
     std::cout << "Block Size: " << threadsPerBlock << std::endl;
     std::cout << "Grid Size: " << blocksPerGrid << std::endl;
@@ -471,7 +472,7 @@ float runWithGraph() {
     std::cout << "=======Results (With Graph)=======" << std::endl;
     std::cout << "Graph Creation Time: " << graphCreateTime << " ms" << std::endl;
     std::cout << "Average Time with Graph: " << meanTime << " ms" << std::endl;
-    std::cout << "Average Time without Graph: " << (totalTime / (NSTEP - 1 - skipBy)) << " ms" << std::endl;
+    std::cout << "Average Time without Graph: " << (totalTime / (NSTEP - 1 - SKIPBY)) << " ms" << std::endl;
     std::cout << "Variance: " << varianceTime << " ms^2" << std::endl;
     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
