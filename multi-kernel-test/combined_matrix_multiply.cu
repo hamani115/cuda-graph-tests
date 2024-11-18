@@ -25,17 +25,17 @@ __global__ void matMulKernel(float* A, float* B, float* C, int width) {
 }
 
 // Function to perform matrix multiplication without using CUDA Graphs
-float matrixMultiplyNoGraph(int width) {
+void matrixMultiplyNoGraph(int width, float* totalTimeWith, float* totalTimeWithout) {
     // Allocate host memory
     float* h_A = (float*)malloc(width * width * sizeof(float));
     float* h_B = (float*)malloc(width * width * sizeof(float));
     float* h_C = (float*)malloc(width * width * sizeof(float));
 
     // Check host memory allocation
-    if (!h_A || !h_B || !h_C) {
-        fprintf(stderr, "Failed to allocate host memory\n");
-        return EXIT_FAILURE;
-    }
+    // if (!h_A || !h_B || !h_C) {
+    //     fprintf(stderr, "Failed to allocate host memory\n");
+    //     return EXIT_FAILURE;
+    // }
 
     // Initialize matrices using index i
     for (int i = 0; i < width * width; i++) {
@@ -171,21 +171,23 @@ float matrixMultiplyNoGraph(int width) {
     CUDA_CHECK(cudaFree(d_C));
 
     // Return total time including first run
-    return totalTime + firstTime;
+    // return totalTime + firstTime;
+    *totalTimeWith = totalTime + firstTime;
+    *totalTimeWithout = totalTime;
 }
 
 // Function to perform matrix multiplication using CUDA Graphs
-float matrixMultiplyWithGraph(int width) {
+void matrixMultiplyWithGraph(int width, float* totalTimeWith, float* totalTimeWithout) {
     // Allocate host memory
     float* h_A = (float*)malloc(width * width * sizeof(float));
     float* h_B = (float*)malloc(width * width * sizeof(float));
     float* h_C = (float*)malloc(width * width * sizeof(float));
 
     // Check host memory allocation
-    if (!h_A || !h_B || !h_C) {
-        fprintf(stderr, "Failed to allocate host memory\n");
-        return EXIT_FAILURE;
-    }
+    // if (!h_A || !h_B || !h_C) {
+    //     fprintf(stderr, "Failed to allocate host memory\n");
+    //     return EXIT_FAILURE;
+    // }
 
     // Initialize matrices using index i
     for (int i = 0; i < width * width; i++) {
@@ -331,25 +333,48 @@ float matrixMultiplyWithGraph(int width) {
     CUDA_CHECK(cudaFree(d_C));
 
     // Return total time including graph creation
-    return totalTime + graphCreateTime;
+    // return totalTime + graphCreateTime;
+    *totalTimeWith = totalTime + graphCreateTime;
+    *totalTimeWithout = totalTime;
 }
 
 int main() {
     // Measure time for non-graph implementation
-    float nonGraphTotalTime = matrixMultiplyNoGraph(N);
+    // float nonGraphTotalTime = matrixMultiplyNoGraph(N);
+
+    // // Measure time for graph implementation
+    // float graphTotalTime = matrixMultiplyWithGraph(N);
+
+    // Measure time for non-graph implementation
+    float nonGraphTotalTime, nonGraphTotalTimeWithout;
+    // float nonGraphTotalTime = matrixMultiplyNoGraph(N);
+    matrixMultiplyNoGraph(N, &nonGraphTotalTime, &nonGraphTotalTimeWithout);
 
     // Measure time for graph implementation
-    float graphTotalTime = matrixMultiplyWithGraph(N);
+    float graphTotalTime, graphTotalTimeWithout;
+    // float graphTotalTime = matrixMultiplyWithGraph(N);
+    matrixMultiplyWithGraph(N, &graphTotalTime, &graphTotalTimeWithout);
 
-    // Compute the difference
+     // Compute the difference
     float difference = nonGraphTotalTime - graphTotalTime;
-    float diffPerStep = difference / NSTEP;
+    float diffPerKernel = difference / (NSTEP);
     float diffPercentage = (difference / nonGraphTotalTime) * 100;
+
+    // Compute the difference for without including Graph
+    float difference2 = nonGraphTotalTimeWithout - graphTotalTimeWithout;
+    float diffPerKernel2 = difference2 / (NSTEP-1);
+    float diffPercentage2 = (difference2 / nonGraphTotalTimeWithout) * 100;
+
+    // Print the differences
+    std::cout << "=======Comparison without Graph Creation=======" << std::endl;
+    std::cout << "Difference: " << difference2 << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel2 << " ms" << std::endl;
+    std::cout << "Difference percentage: " << diffPercentage2 << "%" << std::endl;
 
     // Print the differences
     std::cout << "=======Comparison=======" << std::endl;
     std::cout << "Difference: " << difference << " ms" << std::endl;
-    std::cout << "Difference per step: " << diffPerStep << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel << " ms" << std::endl;
     std::cout << "Difference percentage: " << diffPercentage << "%" << std::endl;
 
     return 0;

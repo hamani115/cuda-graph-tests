@@ -15,7 +15,7 @@
 #define MYDEVICE 0
 
 #define N (1U << 20) //(1 << 12) // 4096 elements
-#define NSTEP 10
+#define NSTEP 100000
 #define SKIPBY 0
 
 // CUDA kernel to add 10 arrays element-wise
@@ -30,7 +30,7 @@ __global__ void add_arrays(float *a1, float *a2, float *a3, float *a4, float *a5
 }
 
 // Function for non-graph implementation
-float runWithoutGraph() {
+void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     // Choose one CUDA device
     CUDA_CHECK(cudaSetDevice(MYDEVICE));
 
@@ -231,11 +231,13 @@ float runWithoutGraph() {
     CUDA_CHECK(cudaFree(d_result));
 
     // Return total time including first run
-    return totalTime + firstTime;
+    // return totalTime + firstTime;
+    *totalTimeWith = totalTime + firstTime;
+    *totalTimeWithout = totalTime;
 }
 
 // Function for graph implementation
-float runWithGraph() {
+void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     // Choose one CUDA device
     CUDA_CHECK(cudaSetDevice(MYDEVICE));
 
@@ -423,25 +425,42 @@ float runWithGraph() {
     CUDA_CHECK(cudaFree(d_result));
 
     // Return total time including graph creation
-    return totalTime + graphCreateTime;
+    // return totalTime + graphCreateTime;
+    *totalTimeWith = totalTime + graphCreateTime;
+    *totalTimeWithout = totalTime;
 }
 
 int main() {
     // Measure time for non-graph implementation
-    float nonGraphTotalTime = runWithoutGraph();
+    float nonGraphTotalTime, nonGraphTotalTimeWithout;
+    // float nonGraphTotalTime = runWithoutGraph(N);
+    runWithoutGraph(&nonGraphTotalTime, &nonGraphTotalTimeWithout);
 
     // Measure time for graph implementation
-    float graphTotalTime = runWithGraph();
+    float graphTotalTime, graphTotalTimeWithout;
+    // float graphTotalTime = runWithGraph(N);
+    runWithGraph(&graphTotalTime, &graphTotalTimeWithout);
 
-    // Compute the difference
+     // Compute the difference
     float difference = nonGraphTotalTime - graphTotalTime;
-    float diffPerStep = difference / NSTEP;
+    float diffPerKernel = difference / (NSTEP);
     float diffPercentage = (difference / nonGraphTotalTime) * 100;
+
+    // Compute the difference for without including Graph
+    float difference2 = nonGraphTotalTimeWithout - graphTotalTimeWithout;
+    float diffPerKernel2 = difference2 / (NSTEP-1);
+    float diffPercentage2 = (difference2 / nonGraphTotalTimeWithout) * 100;
+
+    // Print the differences
+    std::cout << "=======Comparison without Graph Creation=======" << std::endl;
+    std::cout << "Difference: " << difference2 << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel2 << " ms" << std::endl;
+    std::cout << "Difference percentage: " << diffPercentage2 << "%" << std::endl;
 
     // Print the differences
     std::cout << "=======Comparison=======" << std::endl;
     std::cout << "Difference: " << difference << " ms" << std::endl;
-    std::cout << "Difference per step: " << diffPerStep << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel << " ms" << std::endl;
     std::cout << "Difference percentage: " << diffPercentage << "%" << std::endl;
 
     return 0;

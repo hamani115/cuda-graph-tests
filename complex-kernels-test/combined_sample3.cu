@@ -6,8 +6,8 @@
 // Local headers
 #include "../cuda_check.h"
 
+#define NSTEP 5
 #define SKIPBY 0
-#define NSTEP 1000
 
 // Kernel functions
 __global__ void kernelA(double* arrayA, size_t size){
