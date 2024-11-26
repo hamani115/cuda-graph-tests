@@ -6,7 +6,7 @@
 // Local headers
 #include "../cuda_check.h"
 
-#define NSTEP 5
+#define NSTEP 10000
 #define SKIPBY 0
 
 // Kernel functions
@@ -46,7 +46,7 @@ void CUDART_CB set_vector(void* args) {
 }
 
 // Function for non-graph implementation
-float runWithoutGraph() {
+void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     constexpr int numOfBlocks = 1024;
     constexpr int threadsPerBlock = 1024;
     constexpr size_t arraySize = 1U << 20;
@@ -121,7 +121,7 @@ float runWithoutGraph() {
     int count = 0;
 
     // Execute the sequence multiple times
-    for(int i = 0; i < NSTEP - 1; ++i){
+    for(int i = 0; i < NSTEP; ++i){
         CUDA_CHECK(cudaEventRecord(execStart, stream));
 
         // Allocate device memory
@@ -222,11 +222,13 @@ float runWithoutGraph() {
     CUDA_CHECK(cudaStreamDestroy(stream));
 
     // Return total time including first run
-    return totalTime + firstCreateTime;
+    // return totalTime + firstCreateTime;
+    *totalTimeWith = totalTime + firstCreateTime;
+    *totalTimeWithout = totalTime;
 }
 
 // Function for graph implementation
-float runWithGraph() {
+void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     constexpr int numOfBlocks = 1024;
     constexpr int threadsPerBlock = 1024;
     constexpr size_t arraySize = 1U << 20;
@@ -311,7 +313,7 @@ float runWithGraph() {
     int count = 0;
 
     // Launch the graph multiple times
-    for(int i = 0; i < NSTEP - 1; ++i){
+    for(int i = 0; i < NSTEP; ++i){
         CUDA_CHECK(cudaEventRecord(execStart, captureStream));
 
         CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
@@ -388,26 +390,49 @@ float runWithGraph() {
     CUDA_CHECK(cudaFreeHost(h_array));
 
     // Return total time including graph creation
-    return totalTime + graphCreateTime;
+    // return totalTime + graphCreateTime;
+    *totalTimeWith = totalTime + graphCreateTime;
+    *totalTimeWithout = totalTime;
 }
 
 int main() {
     // Measure time for non-graph implementation
-    float nonGraphTotalTime = runWithoutGraph();
+    // float nonGraphTotalTime = runWithoutGraph();
 
     // Measure time for graph implementation
-    float graphTotalTime = runWithGraph();
+    // float graphTotalTime = runWithGraph();
+
+    // Measure time for non-graph implementation
+    float nonGraphTotalTime, nonGraphTotalTimeWithout;
+    // float nonGraphTotalTime = runWithoutGraph(N);
+    runWithoutGraph(&nonGraphTotalTime, &nonGraphTotalTimeWithout);
+
+    // Measure time for graph implementation
+    float graphTotalTime, graphTotalTimeWithout;
+    // float graphTotalTime = runWithGraph(N);
+    runWithGraph(&graphTotalTime, &graphTotalTimeWithout);
+
 
     // Compute the difference
-    // constexpr int iterations = 1000;
     float difference = nonGraphTotalTime - graphTotalTime;
-    float diffPerStep = difference / NSTEP;
+    float diffPerKernel = difference / (NSTEP);
     float diffPercentage = (difference / nonGraphTotalTime) * 100;
+
+    // Compute the difference for without including Graph
+    float difference2 = nonGraphTotalTimeWithout - graphTotalTimeWithout;
+    float diffPerKernel2 = difference2 / (NSTEP-1);
+    float diffPercentage2 = (difference2 / nonGraphTotalTimeWithout) * 100;
+
+    // Print the differences
+    std::cout << "=======Comparison without Graph Creation=======" << std::endl;
+    std::cout << "Difference: " << difference2 << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel2 << " ms" << std::endl;
+    std::cout << "Difference percentage: " << diffPercentage2 << "%" << std::endl;
 
     // Print the differences
     std::cout << "=======Comparison=======" << std::endl;
     std::cout << "Difference: " << difference << " ms" << std::endl;
-    std::cout << "Difference per step: " << diffPerStep << " ms" << std::endl;
+    std::cout << "Difference per step: " << diffPerKernel << " ms" << std::endl;
     std::cout << "Difference percentage: " << diffPercentage << "%" << std::endl;
 
     return 0;

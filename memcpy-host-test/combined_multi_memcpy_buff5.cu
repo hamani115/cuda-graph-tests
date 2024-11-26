@@ -10,7 +10,7 @@
 #include "../cuda_check.h"
 
 #define N (1U << 20) //(1 << 12)  // 4096 elements
-#define NSTEP 100000  // Number of steps to run the test
+#define NSTEP 10000  // Number of steps to run the test
 #define SKIPBY 0
 
 // CUDA kernel to add 10 arrays element-wise

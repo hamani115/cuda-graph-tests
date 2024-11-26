@@ -15,7 +15,7 @@
 #define MYDEVICE 0
 
 #define N (1U << 20) //(1 << 12) // 4096 elements
-#define NSTEP 100000
+#define NSTEP 10000
 #define SKIPBY 0
 
 // CUDA kernel to add 10 arrays element-wise

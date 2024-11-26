@@ -26,6 +26,36 @@ __global__ void kernelC(double* arrayA, const int* arrayB, size_t size){
     if(x < size){ arrayA[x] += arrayB[x]; }
 }
 
+__global__ void kernelD(double* arrayA, size_t size) {
+    const size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+    if(x < size){ arrayA[x] += 2.0; }
+}
+
+__global__ void kernelE(int* arrayB, size_t size) {
+    const size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+    if(x < size){ arrayB[x] += 2; }
+}
+
+struct set_vector_args {
+    double* h_array;
+    double value;
+    size_t size;
+};
+
+void CUDART_CB set_vector(void* args) {
+    set_vector_args* h_args = reinterpret_cast<set_vector_args*>(args);
+    double* array = h_args->h_array;
+    size_t size = h_args->size;
+    double value = h_args->value;
+
+    // Initialize h_array with the specified value
+    for (size_t i = 0; i < size; ++i) {
+        array[i] = value;
+    }
+
+    // Do NOT delete h_args here
+}
+
 // Function for non-graph implementation with multiple streams
 void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     constexpr int numOfBlocks = 1024;
@@ -39,7 +69,8 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaMallocHost((void**)&h_array, arraySize * sizeof(double)));
 
     // Initialize host array
-    std::fill_n(h_array, arraySize, initValue);//<--------
+    std::fill_n(h_array, arraySize, initValue);
+    // h_array.assign(h_array.size(), initValue);
 
     // Create streams
     cudaStream_t stream1, stream2;
@@ -47,7 +78,7 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaStreamCreate(&stream2));
 
     // Allocate device memory
-    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double))); //<--------
+    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
     CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
 
     // Set Timer for first run
@@ -56,31 +87,32 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaEventCreate(&firstCreateStart));
     CUDA_CHECK(cudaEventCreate(&firstCreateStop));
 
-    // Start measuring first run time
+    // START measuring first run time
     CUDA_CHECK(cudaEventRecord(firstCreateStart, stream1));
-    // // Allocate device memory
-    // CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
-    // CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
 
     // Copy h_array to device on stream1
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_array, arraySize * sizeof(double), cudaMemcpyHostToDevice, stream1));
-
-    // Launch kernelA on stream1
-    kernelA<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
 
     // Use events to synchronize between streams
     cudaEvent_t event1, event2;
     CUDA_CHECK(cudaEventCreate(&event1));
     CUDA_CHECK(cudaEventCreate(&event2));
 
+    // Launch kernelA on stream1
+    kernelA<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
+
     // Record event1 after kernelA in stream1
     CUDA_CHECK(cudaEventRecord(event1, stream1));
+
+    kernelD<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
 
     // Make stream2 wait for event1
     CUDA_CHECK(cudaStreamWaitEvent(stream2, event1, 0));
 
     // Launch kernelB on stream2
     kernelB<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
+
+    kernelE<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
 
     // Record event2 after kernelB in stream2
     CUDA_CHECK(cudaEventRecord(event2, stream2));
@@ -93,6 +125,8 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // Copy data back to host on stream1
     CUDA_CHECK(cudaMemcpyAsync(h_array, d_arrayA, arraySize * sizeof(double), cudaMemcpyDeviceToHost, stream1));
+
+    CUDA_CHECK(cudaStreamSynchronize(stream1));
 
     // Wait for all operations to complete
     CUDA_CHECK(cudaEventRecord(firstCreateStop, stream1));
@@ -114,7 +148,8 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // Execute the sequence multiple times
     for(int i = 0; i < NSTEP; ++i){
-         // Reinitialize host array
+
+        // Reinitialize host array
         std::fill_n(h_array, arraySize, initValue);
 
         CUDA_CHECK(cudaEventRecord(execStart, stream1));
@@ -128,11 +163,15 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
         // Record event1 after kernelA in stream1
         CUDA_CHECK(cudaEventRecord(event1, stream1));
 
+        kernelD<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
+
         // Make stream2 wait for event1
         CUDA_CHECK(cudaStreamWaitEvent(stream2, event1, 0));
 
         // Launch kernelB on stream2
         kernelB<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
+
+        kernelE<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
 
         // Record event2 after kernelB in stream2
         CUDA_CHECK(cudaEventRecord(event2, stream2));
@@ -197,7 +236,9 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     std::cout << "Total Time with firstRun: " << totalTime + firstCreateTime << " ms" << std::endl;
 
     // Verify results
-    constexpr double expected = initValue * 2.0 + 3;
+    // constexpr double expected = initValue * 2.0 + 3;
+    constexpr double expected = (initValue * 2.0 + 2.0) + (3 + 2);
+    std::cout << "Validation passed!" << " Expected " << expected << std::endl;
     bool passed = true;
     for(size_t i = 0; i < arraySize; ++i){
         if(h_array[i] != expected){
@@ -243,7 +284,7 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaMallocHost((void**)&h_array, arraySize * sizeof(double)));
 
     // Initialize host array
-    std::fill_n(h_array, arraySize, initValue); //<--------
+    std::fill_n(h_array, arraySize, initValue);
 
    // Create streams
     cudaStream_t stream1, stream2;
@@ -251,7 +292,7 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaStreamCreate(&stream2));
 
     // Allocate device memory
-    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double))); //<--------
+    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
     CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
 
     // Set Timer for graph creation
@@ -273,20 +314,28 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     kernelA<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
 
     // Use events to synchronize between streams
+    // Record event1 to be used by stream2
     cudaEvent_t event1;
     CUDA_CHECK(cudaEventCreate(&event1));
     CUDA_CHECK(cudaEventRecord(event1, stream1));
+
+    // Launch kernelD on stream1 
+    kernelD<<<numOfBlocks, threadsPerBlock, 0, stream1>>>(d_arrayA, arraySize);
+
+    // All operations done before going to stream2
     CUDA_CHECK(cudaStreamWaitEvent(stream2, event1, 0));
 
     // Launch kernelB on stream2 (stream2 is not capturing)
     kernelB<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
 
-    // Use events to synchronize between streams
+    kernelE<<<numOfBlocks, threadsPerBlock, 0, stream2>>>(d_arrayB, arraySize);
+    
+    // Record event2 to be used by stream1
     cudaEvent_t event2;
     CUDA_CHECK(cudaEventCreate(&event2));
     CUDA_CHECK(cudaEventRecord(event2, stream2));
 
-    // Waiting for both events in stream 1
+    // Waiting for event2 in stream 1
     // CUDA_CHECK(cudaStreamWaitEvent(stream1, event1, 0));
     CUDA_CHECK(cudaStreamWaitEvent(stream1, event2, 0));
 
@@ -328,8 +377,7 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // Launch the graph multiple times
     for(int i = 0; i < NSTEP; ++i){
-
-        // Reinitialize host array
+        //Reinitialize host array
         std::fill_n(h_array, arraySize, initValue);
 
         CUDA_CHECK(cudaEventRecord(execStart, stream1));
@@ -387,7 +435,8 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
 
     // Verify results
-    constexpr double expected = initValue * 2.0 + 3;
+    constexpr double expected = (initValue * 2.0 + 2.0) + (3 + 2);
+    std::cout << "Validation passed!" << " Expected " << expected << std::endl;
     bool passed = true;
     for(size_t i = 0; i < arraySize; ++i){
         if(h_array[i] != expected){
@@ -430,8 +479,12 @@ int main() {
     float graphTotalTime, graphTotalTimeWithout;
     // float graphTotalTime = runWithGraph();
     runWithGraph(&graphTotalTime, &graphTotalTimeWithout);
+    
+    // std::cout << "Tests: " << std::endl;
+    // std::cout << "NonGraph with: " << graphTotalTime << " ms" << std::endl;
+    // std::cout << "NonGraph without: " << graphTotalTimeWithout << " ms" << std::endl;
 
-     // Compute the difference
+    // Compute the difference
     float difference = nonGraphTotalTime - graphTotalTime;
     float diffPerKernel = difference / (NSTEP);
     float diffPercentage = (difference / nonGraphTotalTime) * 100;
