@@ -7,7 +7,7 @@
 // Local headers
 #include "../cuda_check.h"
 
-#define NSTEP 10000
+#define NSTEP 1000
 #define SKIPBY 0
 
 // Kernel functions
@@ -77,9 +77,9 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaStreamCreate(&stream1));
     CUDA_CHECK(cudaStreamCreate(&stream2));
 
-    // Allocate device memory
-    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
+    // // Allocate device memory
+    // CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
+    // CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
 
     // Set Timer for first run
     cudaEvent_t firstCreateStart, firstCreateStop;
@@ -89,6 +89,10 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // START measuring first run time
     CUDA_CHECK(cudaEventRecord(firstCreateStart, stream1));
+
+    // Allocate device memory
+    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySize * sizeof(double), stream1));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySize * sizeof(int), stream1));
 
     // Copy h_array to device on stream1
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_array, arraySize * sizeof(double), cudaMemcpyHostToDevice, stream1));
@@ -126,6 +130,9 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     // Copy data back to host on stream1
     CUDA_CHECK(cudaMemcpyAsync(h_array, d_arrayA, arraySize * sizeof(double), cudaMemcpyDeviceToHost, stream1));
 
+    CUDA_CHECK(cudaFreeAsync(d_arrayA, stream1));
+    CUDA_CHECK(cudaFreeAsync(d_arrayB, stream1));
+
     CUDA_CHECK(cudaStreamSynchronize(stream1));
 
     // Wait for all operations to complete
@@ -153,6 +160,10 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
         std::fill_n(h_array, arraySize, initValue);
 
         CUDA_CHECK(cudaEventRecord(execStart, stream1));
+
+        // Allocate device memory
+        CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySize * sizeof(double), stream1));
+        CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySize * sizeof(int), stream1));
 
         // Copy h_array to device on stream1
         CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_array, arraySize * sizeof(double), cudaMemcpyHostToDevice, stream1));
@@ -184,6 +195,9 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
 
         // Copy data back to host on stream1
         CUDA_CHECK(cudaMemcpyAsync(h_array, d_arrayA, arraySize * sizeof(double), cudaMemcpyDeviceToHost, stream1));
+
+        CUDA_CHECK(cudaFreeAsync(d_arrayA, stream1));
+        CUDA_CHECK(cudaFreeAsync(d_arrayB, stream1));
 
         CUDA_CHECK(cudaStreamSynchronize(stream1));
 
@@ -260,8 +274,8 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaEventDestroy(event2));
     CUDA_CHECK(cudaStreamDestroy(stream1));
     CUDA_CHECK(cudaStreamDestroy(stream2));
-    CUDA_CHECK(cudaFree(d_arrayA));
-    CUDA_CHECK(cudaFree(d_arrayB));
+    // CUDA_CHECK(cudaFree(d_arrayA));
+    // CUDA_CHECK(cudaFree(d_arrayB));
     CUDA_CHECK(cudaFreeHost(h_array));
 
     // Return total time including first run
@@ -292,8 +306,8 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaStreamCreate(&stream2));
 
     // Allocate device memory
-    CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
+    // CUDA_CHECK(cudaMalloc(&d_arrayA, arraySize * sizeof(double)));
+    // CUDA_CHECK(cudaMalloc(&d_arrayB, arraySize * sizeof(int)));
 
     // Set Timer for graph creation
     cudaEvent_t graphCreateStart, graphCreateStop;
@@ -306,6 +320,10 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // Begin graph capture on stream1 only
     CUDA_CHECK(cudaStreamBeginCapture(stream1, cudaStreamCaptureModeGlobal));
+
+    // Allocate device memory
+    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySize * sizeof(double), stream1));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySize * sizeof(int), stream1));
 
     // Copy h_array to device on stream1
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_array, arraySize * sizeof(double), cudaMemcpyHostToDevice, stream1));
@@ -345,6 +363,9 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
 
     // Copy data back to host on stream1
     CUDA_CHECK(cudaMemcpyAsync(h_array, d_arrayA, arraySize * sizeof(double), cudaMemcpyDeviceToHost, stream1));
+
+    CUDA_CHECK(cudaFreeAsync(d_arrayA, stream1));
+    CUDA_CHECK(cudaFreeAsync(d_arrayB, stream1));
 
     // End graph capture
     cudaGraph_t graph;
@@ -459,8 +480,8 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     CUDA_CHECK(cudaGraphExecDestroy(graphExec));
     CUDA_CHECK(cudaStreamDestroy(stream1));
     CUDA_CHECK(cudaStreamDestroy(stream2));
-    CUDA_CHECK(cudaFree(d_arrayA));
-    CUDA_CHECK(cudaFree(d_arrayB));
+    // CUDA_CHECK(cudaFree(d_arrayA));
+    // CUDA_CHECK(cudaFree(d_arrayB));
     CUDA_CHECK(cudaFreeHost(h_array));
 
     // Return total time including graph creation

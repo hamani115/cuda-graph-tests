@@ -7,8 +7,8 @@
 // Local headers
 #include "../cuda_check.h"
 
-#define NSTEP 100000
-#define SKIPBY 0
+#define DEFAULT_NSTEP 100000
+#define DEFAULT_SKIPBY 0
 
 // Kernel functions
 __global__ void kernelA(double* arrayA, size_t size){
@@ -57,7 +57,10 @@ struct set_vector_args {
 // }
 
 // Function for non-graph implementation with multiple streams
-void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
+void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout, int nstep, int skipby) {
+    const int NSTEP = nstep;
+    const int SKIPBY = skipby;
+
     constexpr int numOfBlocks = 1024;
     constexpr int threadsPerBlock = 1024;
     constexpr size_t arraySize = 1U << 20;
@@ -295,7 +298,10 @@ void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout) {
 
 
 // Function for graph implementation with multiple streams
-void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
+void runWithGraph(float* totalTimeWith, float* totalTimeWithout, int nstep, int skipby) {
+    const int NSTEP = nstep;
+    const int SKIPBY = skipby;
+
     constexpr int numOfBlocks = 1024;
     constexpr int threadsPerBlock = 1024;
     constexpr size_t arraySize = 1U << 20;
@@ -507,16 +513,19 @@ void runWithGraph(float* totalTimeWith, float* totalTimeWithout) {
     *totalTimeWithout = totalTime;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    const int NSTEP = (argc > 1) ? atoi(argv[1]) : DEFAULT_NSTEP;
+    const int SKIPBY = (argc > 2) ? atoi(argv[2]) : DEFAULT_SKIPBY;
+
     // Measure time for non-graph implementation
     float nonGraphTotalTime, nonGraphTotalTimeWithout;
     // float nonGraphTotalTime = runWithoutGraph();
-    runWithoutGraph(&nonGraphTotalTime, &nonGraphTotalTimeWithout);
+    runWithoutGraph(&nonGraphTotalTime, &nonGraphTotalTimeWithout, NSTEP, SKIPBY);
 
     // Measure time for graph implementation
     float graphTotalTime, graphTotalTimeWithout;
     // float graphTotalTime = runWithGraph();
-    runWithGraph(&graphTotalTime, &graphTotalTimeWithout);
+    runWithGraph(&graphTotalTime, &graphTotalTimeWithout, NSTEP, SKIPBY);
     
     // std::cout << "Tests: " << std::endl;
     // std::cout << "NonGraph with: " << graphTotalTime << " ms" << std::endl;
