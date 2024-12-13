@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>    // For sqrt in standard deviation calculation
 #include <algorithm> // For std::find
+#include <chrono>
+
 
 #include <fstream>
 #include <string>
@@ -670,7 +672,7 @@ int main(int argc, char* argv[]) {
 
         // Chrono Launch + Exec Time 
         float chronoDiffTotalTimeWith = chronoNoneGraphTotalTimeWithArr[i] - chronoGraphTotalTimeWithArr[i];
-        float chronoDiffTotalTimeWithout = chronoNoneGraphTotalTimeWithout[i] - chronoGraphTotalTimeWithout[i];
+        float chronoDiffTotalTimeWithout = chronoNoneGraphTotalTimeWithoutArr[i] - chronoGraphTotalTimeWithoutArr[i];
         
         float chronoDiffPerStepWith = chronoDiffTotalTimeWith / (nsteps[i]-1); 
         float chronoDiffPercentWith = (chronoDiffTotalTimeWith / chronoNoneGraphTotalTimeWithArr[i]) * 100;
@@ -755,24 +757,24 @@ int main(int argc, char* argv[]) {
                 if (std::getline(ss, token, ',')) data.ChronoGraphTotalLaunchTimeWith = std::stod(token);
                 // Read ChronoDiffTotalTimeWithout
                 if (std::getline(ss, token, ',')) data.ChronoDiffTotalTimeWithout = std::stod(token);
-                // Read ChronoPerStepWithout
-                if (std::getline(ss, token, ',')) data.ChronoPerStepWithout = std::stod(token);
-                // Read ChronoPercentWithout
-                if (std::getline(ss, token, ',')) data.ChronoPercentWithout = std::stod(token);
-                // Read ChronoDiffTotalTimeWith
-                if (std::getline(ss, token, ',')) data.ChronoDiffTotalTimeWith = std::stod(token);
-                // Read ChronoPerStepWith
-                if (std::getline(ss, token, ',')) data.ChronoPerStepWith = std::stod(token);
-                // Read ChronoPercentWith
-                if (std::getline(ss, token, ',')) data.ChronoPercentWith = std::stod(token);
-                // Read ChronoDiffLaunchTimeWithout
-                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWithout = std::stod(token);
+                // Read ChronoDiffPerStepWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffPerStepWithout = std::stod(token);
                 // Read ChronoDiffPercentWithout
                 if (std::getline(ss, token, ',')) data.ChronoDiffPercentWithout = std::stod(token);
-                // Read ChronoDiffLaunchTimeWith
-                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWith = std::stod(token);
+                // Read ChronoDiffTotalTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffTotalTimeWith = std::stod(token);
+                // Read ChronoDiffPerStepWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffPerStepWith = std::stod(token);
                 // Read ChronoDiffPercentWith
                 if (std::getline(ss, token, ',')) data.ChronoDiffPercentWith = std::stod(token);
+                // Read ChronoDiffLaunchTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWithout = std::stod(token);
+                // Read ChronoDiffLaunchPercentWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchPercentWithout = std::stod(token);
+                // Read ChronoDiffLaunchTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWith = std::stod(token);
+                // Read ChronoDiffLaunchPercentWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchPercentWith = std::stod(token);
 
                 csvData.push_back(data);
             }
@@ -804,15 +806,15 @@ int main(int argc, char* argv[]) {
         newData.ChronoNoneGraphTotalLaunchTimeWith = chronoNoneGraphTotalLaunchTimeWithArr[i];
         newData.ChronoGraphTotalLaunchTimeWith = chronoGraphTotalLaunchTimeWithArr[i];
         newData.ChronoDiffTotalTimeWithout = chronoDiffTotalTimeWithout;
-        newData.ChronoPerStepWithout = chronoDiffPerStepWithout;
-        newData.ChronoPercentWithout = chronoDiffPercentWithout;
+        newData.ChronoDiffPerStepWithout = chronoDiffPerStepWithout;
+        newData.ChronoDiffPercentWithout = chronoDiffPercentWithout;
         newData.ChronoDiffTotalTimeWith = chronoDiffTotalTimeWith;
-        newData.ChronoPerStepWith = chronoDiffPerStepWith;
-        newData.ChronoPercentWith = chronoDiffPercentWith;
+        newData.ChronoDiffPerStepWith = chronoDiffPerStepWith;
+        newData.ChronoDiffPercentWith = chronoDiffPercentWith;
         newData.ChronoDiffLaunchTimeWithout = chronoDiffLaunchTimeWithout;
-        newData.ChronoDiffPercentWithout = chronoDiffLaunchPercentWithout;
+        newData.ChronoDiffLaunchPercentWithout = chronoDiffLaunchPercentWithout;
         newData.ChronoDiffLaunchTimeWith = chronoDiffLaunchTimeWith;
-        newData.ChronoDiffPercentWith = chronoDiffLaunchPercentWith;
+        newData.ChronoDiffLaunchPercentWith = chronoDiffLaunchPercentWith;
 
 
         // Function to update or append data
@@ -850,10 +852,10 @@ int main(int argc, char* argv[]) {
                     "ChronoNoneGraphTotalLaunchTimeWithout,ChronoGraphTotalLaunchTimeWithout,"
                     "ChronoNoneGraphTotalTimeWith,ChronoGraphTotalTimeWith,"
                     "ChronoNoneGraphTotalLaunchTimeWith,ChronoGraphTotalLaunchTimeWith,"
-                    "ChronoDiffTotalTimeWithout,ChronoPerStepWithout,ChronoPercentWithout,"
-                    "ChronoDiffTotalTimeWith,ChronoPerStepWith,ChronoPercentWith,"
-                    "ChronoDiffLaunchTimeWithout,ChronoDiffPercentWithout,"
-                    "ChronoDiffLaunchTimeWith,ChronoDiffPercentWith"
+                    "ChronoDiffTotalTimeWithout,ChronoDiffPerStepWithout,ChronoDiffPercentWithout,"
+                    "ChronoDiffTotalTimeWith,ChronoDiffPerStepWith,ChronoDiffPercentWith,"
+                    "ChronoDiffLaunchTimeWithout,ChronoDiffLaunchPercentWithout,"
+                    "ChronoDiffLaunchTimeWith,ChronoDiffLaunchPercentWith"
                     << "\n";
 
         for (const auto& entry : csvData) {
@@ -878,15 +880,15 @@ int main(int argc, char* argv[]) {
                     << entry.ChronoNoneGraphTotalLaunchTimeWith << ","
                     << entry.ChronoGraphTotalLaunchTimeWith << ","
                     << entry.ChronoDiffTotalTimeWithout << ","
-                    << entry.ChronoPerStepWithout << ","
-                    << entry.ChronoPercentWithout << ","
-                    << entry.ChronoDiffTotalTimeWith << ","
-                    << entry.ChronoPerStepWith << ","
-                    << entry.ChronoPercentWith << ","
-                    << entry.ChronoDiffLaunchTimeWithout << ","
+                    << entry.ChronoDiffPerStepWithout << ","
                     << entry.ChronoDiffPercentWithout << ","
+                    << entry.ChronoDiffTotalTimeWith << ","
+                    << entry.ChronoDiffPerStepWith << ","
+                    << entry.ChronoDiffPercentWith << ","
+                    << entry.ChronoDiffLaunchTimeWithout << ","
+                    << entry.ChronoDiffLaunchPercentWithout << ","
                     << entry.ChronoDiffLaunchTimeWith << ","
-                    << entry.ChronoDiffPercentWith
+                    << entry.ChronoDiffLaunchPercentWith
                     << "\n";
         }
         
