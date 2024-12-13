@@ -44,6 +44,24 @@ struct CSVData {
     float DiffTotalWith;
     float DiffPerStepWith;
     float DiffPercentWith;
+    float ChronoNoneGraphTotalTimeWithout;
+    float ChronoGraphTotalTimeWithout;
+    float ChronoNoneGraphTotalLaunchTimeWithout;
+    float ChronoGraphTotalLaunchTimeWithout;
+    float ChronoNoneGraphTotalTimeWith;
+    float ChronoGraphTotalTimeWith;
+    float ChronoNoneGraphTotalLaunchTimeWith;
+    float ChronoGraphTotalLaunchTimeWith;
+    float ChronoDiffTotalTimeWithout;
+    float ChronoDiffPerStepWithout;
+    float ChronoDiffPercentWithout;
+    float ChronoDiffTotalTimeWith;
+    float ChronoDiffPerStepWith;
+    float ChronoDiffPercentWith;
+    float ChronoDiffLaunchTimeWithout;
+    float ChronoDiffLaunchPercentWithout;
+    float ChronoDiffLaunchTimeWith;
+    float ChronoDiffLaunchPercentWith;
 };
 
 
@@ -89,7 +107,8 @@ std::vector<int> generateSequence(int N) {
 
 // Function for non-graph implementation
 // void runWithoutGraph(float* totalTimeWith, float* totalTimeWithout, int nstep, int skipby) {
-void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& totalTimeWithoutArr, int nstep, int skipby) {
+void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& totalTimeWithoutArr, std::vector<float>& chronoTotalTimeWithArr, std::vector<float>& chronoTotalTimeWithoutArr, std::vector<float>& chronoTotalLaunchTimeWithArr,std::vector<float>& chronoTotalLaunchTimeWithoutArr,
+                int nstep, int skipby) {
     // Declare constants inside the function
     const int NSTEP = nstep;
     const int SKIPBY = skipby;
@@ -128,6 +147,7 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
 
     // Start measuring first run time
     CUDA_CHECK(cudaEventRecord(firstCreateStart, stream));
+    const auto graphStart = std::chrono::steady_clock::now();
 
     // Copy h_array to device
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_array, arraySize * sizeof(double), cudaMemcpyHostToDevice, stream));
@@ -143,10 +163,14 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
     // Wait for all operations to complete
     // CUDA_CHECK(cudaStreamSynchronize(stream));
 
+    const auto graphEnd = std::chrono::steady_clock::now();
     // Stop measuring first run time
     CUDA_CHECK(cudaEventRecord(firstCreateStop, stream));
     CUDA_CHECK(cudaEventSynchronize(firstCreateStop));
+    const auto graphEnd2 = std::chrono::steady_clock::now();
     CUDA_CHECK(cudaEventElapsedTime(&firstCreateTime, firstCreateStart, firstCreateStop));
+    const std::chrono::duration<double> graphCreateTimeChrono = graphEnd - graphStart;
+    const std::chrono::duration<double> graphCreateTimeChrono2 = graphEnd2 - graphStart;
 
     // Measure execution time
     cudaEvent_t execStart, execStop;
@@ -155,6 +179,8 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
 
     float elapsedTime = 0.0f;
     float totalTime = 0.0f;
+    std::chrono::duration<double> totalTimeChrono = std::chrono::duration<double>(0.0);
+    std::chrono::duration<double> totalLunchTimeChrono = std::chrono::duration<double>(0.0);
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
     // int skipBy = 0;
@@ -172,6 +198,7 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
         }
 
         CUDA_CHECK(cudaEventRecord(execStart, stream));
+        const auto start = std::chrono::steady_clock::now();
 
         // Initialize host array using index i
         // for (size_t j = 0; j < arraySize; ++j) {
@@ -194,12 +221,18 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
         // Wait for all operations to complete
         // CUDA_CHECK(cudaStreamSynchronize(stream));
 
+        const auto end = std::chrono::steady_clock::now();
         CUDA_CHECK(cudaEventRecord(execStop, stream));
         CUDA_CHECK(cudaEventSynchronize(execStop));
+        const auto end2 = std::chrono::steady_clock::now();
         CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, execStart, execStop));
 
         // Time calculations
         if (i >= SKIPBY) {
+            const std::chrono::duration<double> launchTimeChrono = end - start;
+            const std::chrono::duration<double> lunchExecTimeChrono = end2 - start;
+            totalTimeChrono += lunchExecTimeChrono;
+            totalLunchTimeChrono += launchTimeChrono;
             totalTime += elapsedTime;
 
             // Welford's algorithm for calculating mean and variance
@@ -240,8 +273,22 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
                     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
                     std::cout << "Total Time without firstRun: " << totalTime << " ms" << std::endl;
                     std::cout << "Total Time with firstRun: " << totalTime + firstCreateTime << " ms" << std::endl;
+                    // CHRONO
+                    const std::chrono::duration<double> totalTimeWithChrono = totalTimeChrono + graphCreateTimeChrono2;
+                    const std::chrono::duration<double> totalLunchTimeWithChrono = totalLunchTimeChrono + graphCreateTimeChrono;
+                    std::cout << "Graph Creation Chrono Launch before Sync: " << graphCreateTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Graph Creation Chrono LunchExec after Sync: " << graphCreateTimeChrono2.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono Launch without Graph Creation: " << totalLunchTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono Launch with Graph Creation: " << totalLunchTimeWithChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono LunchExec without Graph Creation: " << totalTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono LunchExec with Graph Creation: " << totalTimeWithChrono.count() * 1000 << " ms" << std::endl;
+                    
                     totalTimeWithArr.push_back(totalTime + firstCreateTime);
                     totalTimeWithoutArr.push_back(totalTime);
+                    chronoTotalTimeWithArr.push_back(totalTimeWithChrono.count() * 1000);
+                    chronoTotalTimeWithoutArr.push_back(totalTimeChrono.count() * 1000);
+                    chronoTotalLaunchTimeWithArr.push_back(totalLunchTimeWithChrono.count() * 1000);
+                    chronoTotalLaunchTimeWithoutArr.push_back(totalLunchTimeChrono.count() * 1000);
                 }
             }
         }
@@ -302,7 +349,8 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
 
 // Function for graph implementation
 // void runWithGraph(float* totalTimeWith, float* totalTimeWithout, int nstep, int skipby) {
-void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& totalTimeWithoutArr, int nstep, int skipby) {
+void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& totalTimeWithoutArr, std::vector<float>& chronoTotalTimeWithArr, std::vector<float>& chronoTotalTimeWithoutArr, std::vector<float>& chronoTotalLaunchTimeWithArr, std::vector<float>& chronoTotalLaunchTimeWithoutArr,
+                int nstep, int skipby) {
     // Declare constants inside the function
     const int NSTEP = nstep;
     const int SKIPBY = skipby;
@@ -338,6 +386,7 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     // Start measuring graph creation time
     CUDA_CHECK(cudaEventRecord(graphCreateStart, captureStream));
+    const auto graphStart = std::chrono::steady_clock::now();
 
     // Start capturing operations
     CUDA_CHECK(cudaStreamBeginCapture(captureStream, cudaStreamCaptureModeGlobal));
@@ -367,10 +416,14 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     // Destroy the graph template if not needed
     CUDA_CHECK(cudaGraphDestroy(graph));
 
+    const auto graphEnd = std::chrono::steady_clock::now();
     // Stop measuring graph creation time
     CUDA_CHECK(cudaEventRecord(graphCreateStop, captureStream));
     CUDA_CHECK(cudaEventSynchronize(graphCreateStop));
+    const auto graphEnd2 = std::chrono::steady_clock::now();
     CUDA_CHECK(cudaEventElapsedTime(&graphCreateTime, graphCreateStart, graphCreateStop));
+    const std::chrono::duration<double> graphCreateTimeChrono = graphEnd - graphStart;
+    const std::chrono::duration<double> graphCreateTimeChrono2 = graphEnd2 - graphStart;
 
     // Measure execution time
     cudaEvent_t execStart, execStop;
@@ -379,6 +432,8 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     float elapsedTime = 0.0f;
     float totalTime = 0.0f;
+    std::chrono::duration<double> totalTimeChrono = std::chrono::duration<double>(0.0);
+    std::chrono::duration<double> totalLunchTimeChrono = std::chrono::duration<double>(0.0);
     float upperTime = 0.0f;
     float lowerTime = 0.0f;
     // int skipBy = 0;
@@ -404,16 +459,23 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
         }
         
         CUDA_CHECK(cudaEventRecord(execStart, captureStream));
+        const auto start = std::chrono::steady_clock::now();
 
         CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
         // CUDA_CHECK(cudaStreamSynchronize(captureStream));
 
+        const auto end = std::chrono::steady_clock::now();
         CUDA_CHECK(cudaEventRecord(execStop, captureStream));
         CUDA_CHECK(cudaEventSynchronize(execStop));
+        const auto end2 = std::chrono::steady_clock::now();
         CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, execStart, execStop));
 
         // Time calculations
         if (i >= SKIPBY) {
+            const std::chrono::duration<double> launchTimeChrono = end - start;
+            const std::chrono::duration<double> lunchExecTimeChrono = end2 - start;
+            totalTimeChrono += lunchExecTimeChrono;
+            totalLunchTimeChrono += launchTimeChrono;
             totalTime += elapsedTime;
 
             // Welford's algorithm for calculating mean and variance
@@ -454,8 +516,23 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
                     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
                     std::cout << "Total Time without Graph Creation: " << totalTime << " ms" << std::endl;
                     std::cout << "Total Time with Graph Creation: " << totalTime + graphCreateTime << " ms" << std::endl;
+                    // CHRONO
+                    const std::chrono::duration<double> totalTimeWithChrono = totalTimeChrono + graphCreateTimeChrono2;
+                    const std::chrono::duration<double> totalLunchTimeWithChrono = totalLunchTimeChrono + graphCreateTimeChrono;
+                    std::cout << "Graph Creation Chrono Launch before Sync: " << graphCreateTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Graph Creation Chrono LunchExec after Sync: " << graphCreateTimeChrono2.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono Launch without Graph Creation: " << totalLunchTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono Launch with Graph Creation: " << totalLunchTimeWithChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono LunchExec without Graph Creation: " << totalTimeChrono.count() * 1000  << " ms" << std::endl;
+                    std::cout << "Total Time Chrono LunchExec with Graph Creation: " << totalTimeWithChrono.count() * 1000 << " ms" << std::endl;
+                    
                     totalTimeWithArr.push_back(totalTime + graphCreateTime);
                     totalTimeWithoutArr.push_back(totalTime);
+                    chronoTotalTimeWithArr.push_back(totalTimeWithChrono.count() * 1000);
+                    chronoTotalTimeWithoutArr.push_back(totalTimeChrono.count() * 1000);
+                    chronoTotalLaunchTimeWithArr.push_back(totalLunchTimeWithChrono.count() * 1000);
+                    chronoTotalLaunchTimeWithoutArr.push_back(totalLunchTimeChrono.count() * 1000);
+
                 }
             }
         }
@@ -591,7 +668,7 @@ int main(int argc, char* argv[]) {
         float diffPerKernel2 = difference2 / (nsteps[i]-1);
         float diffPercentage2 = (difference2 / noneGraphTotalTimeWithoutArr[i]) * 100;
 
-        // Chrono Lunch + Exec Time 
+        // Chrono Launch + Exec Time 
         float chronoDiffTotalTimeWith = chronoNoneGraphTotalTimeWithArr[i] - chronoGraphTotalTimeWithArr[i];
         float chronoDiffTotalTimeWithout = chronoNoneGraphTotalTimeWithout[i] - chronoGraphTotalTimeWithout[i];
         
@@ -601,12 +678,12 @@ int main(int argc, char* argv[]) {
         float chronoDiffPerStepWithout = chronoDiffTotalTimeWithout / (nsteps[i]-1); 
         float chronoDiffPercentWithout = (chronoDiffTotalTimeWithout / chronoNoneGraphTotalTimeWithoutArr[i]) * 100;
 
-        // Chrono Lunch Time
-        float chronoDiffLunchTimeWith = chronoNoneGraphTotalLaunchTimeWithArr[i] - chronoGraphTotalLaunchTimeWithArr[i];
-        float chronoDiffLunchTimeWithout = chronoNoneGraphTotalLaunchTimeWithoutArr[i] - chronoGraphTotalLaunchTimeWithoutArr[i];
+        // Chrono Launch Time
+        float chronoDiffLaunchTimeWith = chronoNoneGraphTotalLaunchTimeWithArr[i] - chronoGraphTotalLaunchTimeWithArr[i];
+        float chronoDiffLaunchTimeWithout = chronoNoneGraphTotalLaunchTimeWithoutArr[i] - chronoGraphTotalLaunchTimeWithoutArr[i];
 
-        float chronoDiffLunchPercentWithout = (chronoDiffLunchTimeWithout / chronoNoneGraphTotalLaunchTimeWithoutArr[i]) * 100;
-        float chronoDiffLunchPercentWith = (chronoDiffLunchTimeWith / chronoNoneGraphTotalLaunchTimeWithArr[i]) * 100;
+        float chronoDiffLaunchPercentWithout = (chronoDiffLaunchTimeWithout / chronoNoneGraphTotalLaunchTimeWithoutArr[i]) * 100;
+        float chronoDiffLaunchPercentWith = (chronoDiffLaunchTimeWith / chronoNoneGraphTotalLaunchTimeWithArr[i]) * 100;
 
         std::cout << "==============For NSTEP "<< nsteps[i] << "==============" << std::endl;
         // Print the differences
@@ -624,7 +701,8 @@ int main(int argc, char* argv[]) {
         //----------------- Constructing CSV File------------------------------------
         std::vector<CSVData> csvData;
         // Open the CSV file for reading
-        std::ifstream csvFileIn("timing_data2.csv");
+        std::ifstream csvFileIn(FILENAME);
+        // Get the current data from the CSV file
         if (csvFileIn.is_open()) {
             std::string line;
             // Skip the header line
@@ -659,6 +737,42 @@ int main(int argc, char* argv[]) {
                 if (std::getline(ss, token, ',')) data.DiffPerStepWith = std::stod(token);
                 // Read DiffPercentWith
                 if (std::getline(ss, token, ',')) data.DiffPercentWith = std::stod(token);
+                // Read ChronoNoneGraphTotalTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoNoneGraphTotalTimeWithout = std::stod(token);
+                // Read ChronoGraphTotalTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoGraphTotalTimeWithout = std::stod(token);
+                // Read ChronoNoneGraphTotalLaunchTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoNoneGraphTotalLaunchTimeWithout = std::stod(token);
+                // Read ChronoGraphTotalLaunchTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoGraphTotalLaunchTimeWithout = std::stod(token);
+                // Read ChronoNoneGraphTotalTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoNoneGraphTotalTimeWith = std::stod(token);
+                // Read ChronoGraphTotalTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoGraphTotalTimeWith = std::stod(token);
+                // Read ChronoNoneGraphTotalLaunchTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoNoneGraphTotalLaunchTimeWith = std::stod(token);
+                // Read ChronoGraphTotalLaunchTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoGraphTotalLaunchTimeWith = std::stod(token);
+                // Read ChronoDiffTotalTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffTotalTimeWithout = std::stod(token);
+                // Read ChronoPerStepWithout
+                if (std::getline(ss, token, ',')) data.ChronoPerStepWithout = std::stod(token);
+                // Read ChronoPercentWithout
+                if (std::getline(ss, token, ',')) data.ChronoPercentWithout = std::stod(token);
+                // Read ChronoDiffTotalTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffTotalTimeWith = std::stod(token);
+                // Read ChronoPerStepWith
+                if (std::getline(ss, token, ',')) data.ChronoPerStepWith = std::stod(token);
+                // Read ChronoPercentWith
+                if (std::getline(ss, token, ',')) data.ChronoPercentWith = std::stod(token);
+                // Read ChronoDiffLaunchTimeWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWithout = std::stod(token);
+                // Read ChronoDiffPercentWithout
+                if (std::getline(ss, token, ',')) data.ChronoDiffPercentWithout = std::stod(token);
+                // Read ChronoDiffLaunchTimeWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffLaunchTimeWith = std::stod(token);
+                // Read ChronoDiffPercentWith
+                if (std::getline(ss, token, ',')) data.ChronoDiffPercentWith = std::stod(token);
 
                 csvData.push_back(data);
             }
@@ -667,6 +781,7 @@ int main(int argc, char* argv[]) {
             std::cerr << "Unable to open file!" << std::endl;
         }
 
+        // Make a new data entry with updated values
         CSVData newData;
         newData.NSTEP = nsteps[i];
         newData.SKIPBY = SKIPBY;
@@ -680,7 +795,25 @@ int main(int argc, char* argv[]) {
         newData.DiffTotalWith = difference;
         newData.DiffPerStepWith = diffPerKernel;
         newData.DiffPercentWith = diffPercentage;
-        newData.ChronoNoneGraphTotalLaunchTimeWithout = chronoNoneGraphTotalTimeWithoutArr[i];
+        newData.ChronoNoneGraphTotalTimeWithout = chronoNoneGraphTotalTimeWithoutArr[i];
+        newData.ChronoGraphTotalTimeWithout = chronoGraphTotalTimeWithoutArr[i];
+        newData.ChronoNoneGraphTotalLaunchTimeWithout = chronoNoneGraphTotalLaunchTimeWithoutArr[i];
+        newData.ChronoGraphTotalLaunchTimeWithout = chronoGraphTotalLaunchTimeWithoutArr[i];
+        newData.ChronoNoneGraphTotalTimeWith = chronoNoneGraphTotalTimeWithArr[i];
+        newData.ChronoGraphTotalTimeWith = chronoGraphTotalTimeWithArr[i];
+        newData.ChronoNoneGraphTotalLaunchTimeWith = chronoNoneGraphTotalLaunchTimeWithArr[i];
+        newData.ChronoGraphTotalLaunchTimeWith = chronoGraphTotalLaunchTimeWithArr[i];
+        newData.ChronoDiffTotalTimeWithout = chronoDiffTotalTimeWithout;
+        newData.ChronoPerStepWithout = chronoDiffPerStepWithout;
+        newData.ChronoPercentWithout = chronoDiffPercentWithout;
+        newData.ChronoDiffTotalTimeWith = chronoDiffTotalTimeWith;
+        newData.ChronoPerStepWith = chronoDiffPerStepWith;
+        newData.ChronoPercentWith = chronoDiffPercentWith;
+        newData.ChronoDiffLaunchTimeWithout = chronoDiffLaunchTimeWithout;
+        newData.ChronoDiffPercentWithout = chronoDiffLaunchPercentWithout;
+        newData.ChronoDiffLaunchTimeWith = chronoDiffLaunchTimeWith;
+        newData.ChronoDiffPercentWith = chronoDiffLaunchPercentWith;
+
 
         // Function to update or append data
         auto updateOrAppend = [](std::vector<CSVData>& dataVec, const CSVData& newData) {
@@ -697,6 +830,7 @@ int main(int argc, char* argv[]) {
             }
         };
 
+        // Update or append the new data
         updateOrAppend(csvData, newData);
 
         // Write updated data back to CSV
@@ -711,7 +845,16 @@ int main(int argc, char* argv[]) {
                     "noneGraphTotalTimeWithout,GraphTotalTimeWithout,"
                     "noneGraphTotalTimeWith,GraphTotalTimeWith,"
                     "DiffTotalWithout,DiffPerStepWithout,DiffPercentWithout,"
-                    "DiffTotalWith,DiffPerStepWith,DiffPercentWith" << "\n";
+                    "DiffTotalWith,DiffPerStepWith,DiffPercentWith" 
+                    "ChronoNoneGraphTotalTimeWithout,ChronoGraphTotalTimeWithout,"
+                    "ChronoNoneGraphTotalLaunchTimeWithout,ChronoGraphTotalLaunchTimeWithout,"
+                    "ChronoNoneGraphTotalTimeWith,ChronoGraphTotalTimeWith,"
+                    "ChronoNoneGraphTotalLaunchTimeWith,ChronoGraphTotalLaunchTimeWith,"
+                    "ChronoDiffTotalTimeWithout,ChronoPerStepWithout,ChronoPercentWithout,"
+                    "ChronoDiffTotalTimeWith,ChronoPerStepWith,ChronoPercentWith,"
+                    "ChronoDiffLaunchTimeWithout,ChronoDiffPercentWithout,"
+                    "ChronoDiffLaunchTimeWith,ChronoDiffPercentWith"
+                    << "\n";
 
         for (const auto& entry : csvData) {
             tempFile << entry.NSTEP << ","
@@ -725,7 +868,26 @@ int main(int argc, char* argv[]) {
                     << entry.DiffPercentWithout << "," 
                     << entry.DiffTotalWith << "," 
                     << entry.DiffPerStepWith << "," 
-                    << entry.DiffPercentWith << "\n";
+                    << entry.DiffPercentWith 
+                    << entry.ChronoNoneGraphTotalTimeWithout << ","
+                    << entry.ChronoGraphTotalTimeWithout << ","
+                    << entry.ChronoNoneGraphTotalLaunchTimeWithout << ","
+                    << entry.ChronoGraphTotalLaunchTimeWithout << ","
+                    << entry.ChronoNoneGraphTotalTimeWith << ","
+                    << entry.ChronoGraphTotalTimeWith << ","
+                    << entry.ChronoNoneGraphTotalLaunchTimeWith << ","
+                    << entry.ChronoGraphTotalLaunchTimeWith << ","
+                    << entry.ChronoDiffTotalTimeWithout << ","
+                    << entry.ChronoPerStepWithout << ","
+                    << entry.ChronoPercentWithout << ","
+                    << entry.ChronoDiffTotalTimeWith << ","
+                    << entry.ChronoPerStepWith << ","
+                    << entry.ChronoPercentWith << ","
+                    << entry.ChronoDiffLaunchTimeWithout << ","
+                    << entry.ChronoDiffPercentWithout << ","
+                    << entry.ChronoDiffLaunchTimeWith << ","
+                    << entry.ChronoDiffPercentWith
+                    << "\n";
         }
         
         // Close CSV file
