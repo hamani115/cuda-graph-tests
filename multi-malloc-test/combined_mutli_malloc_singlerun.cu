@@ -375,16 +375,22 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
     cudaStream_t stream;
     CUDA_CHECK(cudaStreamCreate(&stream));
 
-    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), stream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), stream));
-    // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), stream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), stream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), stream));
+    // // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), stream));
 
     CUDA_CHECK(cudaEventRecord(firstCreateStart, stream));
 
     // Start chrono
     const auto graphStart = std::chrono::steady_clock::now();
+
+    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), stream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), stream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), stream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), stream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), stream));
 
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_arrayA, arraySizeA*sizeof(double), cudaMemcpyHostToDevice, stream));
     CUDA_CHECK(cudaMemcpyAsync(d_arrayB, h_arrayB, arraySizeB*sizeof(int), cudaMemcpyHostToDevice, stream));
@@ -401,6 +407,12 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
     CUDA_CHECK(cudaMemcpyAsync(h_arrayD, d_arrayD, arraySizeD*sizeof(float), cudaMemcpyDeviceToHost, stream));
     CUDA_CHECK(cudaMemcpyAsync(h_arrayE, d_arrayE, arraySizeE*sizeof(int), cudaMemcpyDeviceToHost, stream));
     // CUDA_CHECK(cudaStreamSynchronize(stream));
+
+    CUDA_CHECK(cudaFreeAsync(d_arrayA, stream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayB, stream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayC, stream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayD, stream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayE, stream));
 
     const auto graphEnd = std::chrono::steady_clock::now();
     CUDA_CHECK(cudaEventRecord(firstCreateStop, stream));
@@ -436,6 +448,12 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
         CUDA_CHECK(cudaEventRecord(execStart, stream));
         const auto start = std::chrono::steady_clock::now();
 
+        CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), stream));
+        CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), stream));
+        // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), stream));
+        CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), stream));
+        CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), stream));
+
         CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_arrayA, arraySizeA*sizeof(double), cudaMemcpyHostToDevice, stream));
         CUDA_CHECK(cudaMemcpyAsync(d_arrayB, h_arrayB, arraySizeB*sizeof(int), cudaMemcpyHostToDevice, stream));
         CUDA_CHECK(cudaMemcpyAsync(d_arrayD, h_arrayD, arraySizeD*sizeof(float), cudaMemcpyHostToDevice, stream));
@@ -451,6 +469,12 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
         CUDA_CHECK(cudaMemcpyAsync(h_arrayD, d_arrayD, arraySizeD*sizeof(float), cudaMemcpyDeviceToHost, stream));
         CUDA_CHECK(cudaMemcpyAsync(h_arrayE, d_arrayE, arraySizeE*sizeof(int), cudaMemcpyDeviceToHost, stream));
         // CUDA_CHECK(cudaStreamSynchronize(stream));
+
+        CUDA_CHECK(cudaFreeAsync(d_arrayA, stream));
+        CUDA_CHECK(cudaFreeAsync(d_arrayB, stream));
+        // CUDA_CHECK(cudaFreeAsync(d_arrayC, stream));
+        CUDA_CHECK(cudaFreeAsync(d_arrayD, stream));
+        CUDA_CHECK(cudaFreeAsync(d_arrayE, stream));
 
         const auto end = std::chrono::steady_clock::now();
         CUDA_CHECK(cudaEventRecord(execStop, stream));
@@ -534,11 +558,11 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
         std::cerr << "Validation passed." << std::endl;
     }
 
-    CUDA_CHECK(cudaFreeAsync(d_arrayA, stream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayB, stream));
-    // CUDA_CHECK(cudaFreeAsync(d_arrayC, stream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayD, stream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayE, stream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayA, stream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayB, stream));
+    // // CUDA_CHECK(cudaFreeAsync(d_arrayC, stream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayD, stream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayE, stream));
 
     CUDA_CHECK(cudaEventDestroy(execStart));
     CUDA_CHECK(cudaEventDestroy(execStop));
@@ -603,16 +627,22 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     CUDA_CHECK(cudaEventCreate(&graphCreateStart));
     CUDA_CHECK(cudaEventCreate(&graphCreateStop));
 
-    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), captureStream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), captureStream));
-    // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), captureStream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), captureStream));
-    CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), captureStream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), captureStream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), captureStream));
+    // // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), captureStream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), captureStream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), captureStream));
 
     CUDA_CHECK(cudaEventRecord(graphCreateStart, captureStream));
     const auto graphStart = std::chrono::steady_clock::now();
 
     CUDA_CHECK(cudaStreamBeginCapture(captureStream, cudaStreamCaptureModeGlobal));
+
+    CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), captureStream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), captureStream));
+    // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), captureStream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), captureStream));
+    CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), captureStream));
 
     CUDA_CHECK(cudaMemcpyAsync(d_arrayA, h_arrayA, arraySizeA*sizeof(double), cudaMemcpyHostToDevice, captureStream));
     CUDA_CHECK(cudaMemcpyAsync(d_arrayB, h_arrayB, arraySizeB*sizeof(int), cudaMemcpyHostToDevice, captureStream));
@@ -628,6 +658,12 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     CUDA_CHECK(cudaMemcpyAsync(h_arrayA, d_arrayA, arraySizeA*sizeof(double), cudaMemcpyDeviceToHost, captureStream));
     CUDA_CHECK(cudaMemcpyAsync(h_arrayD, d_arrayD, arraySizeD*sizeof(float), cudaMemcpyDeviceToHost, captureStream));
     CUDA_CHECK(cudaMemcpyAsync(h_arrayE, d_arrayE, arraySizeE*sizeof(int), cudaMemcpyDeviceToHost, captureStream));
+
+    CUDA_CHECK(cudaFreeAsync(d_arrayA, captureStream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayB, captureStream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayC, captureStream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayD, captureStream));
+    CUDA_CHECK(cudaFreeAsync(d_arrayE, captureStream));
 
     cudaGraph_t graph;
     CUDA_CHECK(cudaStreamEndCapture(captureStream, &graph));
@@ -753,11 +789,11 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
         std::cerr << "Validation passed." << std::endl;
     }
 
-    CUDA_CHECK(cudaFreeAsync(d_arrayA, captureStream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayB, captureStream));
-    // CUDA_CHECK(cudaFreeAsync(d_arrayC, captureStream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayD, captureStream));
-    CUDA_CHECK(cudaFreeAsync(d_arrayE, captureStream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayA, captureStream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayB, captureStream));
+    // // CUDA_CHECK(cudaFreeAsync(d_arrayC, captureStream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayD, captureStream));
+    // CUDA_CHECK(cudaFreeAsync(d_arrayE, captureStream));
 
     CUDA_CHECK(cudaEventDestroy(execStart));
     CUDA_CHECK(cudaEventDestroy(execStop));
