@@ -8,7 +8,7 @@ CSV_FILES=(
     "./complex-kernels-test/complex_3_different_kernels.csv"
     "./diffsize-kernels-test/complex_different_sizes_kernels.csv"
     "./multi-stream-test/complex_multi_stream_kernels.csv"
-    "./multi-malloc-test/complex_different_sizes_kernels.csv"
+    "./multi-malloc-test/complex_multi_malloc.csv"
     # "/path/to/your/file2.csv"
 )
 
