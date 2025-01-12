@@ -297,38 +297,68 @@ def generate_gputimeperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # Average total times across runs for 'Without Graph'
-        data_without = df[['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2', 
-                                 'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']].mean(axis=1).values
-        time_perstep_without = data_without / nsteps  # Time per step
+        data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2', 
+                                 'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        time_perstep_without = mean_without / nsteps
+        time_perstep_std_without = std_without / nsteps
 
         # Average total times across runs for 'With Graph'
-        data_with = df[['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2', 
-                              'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']].mean(axis=1).values
-        time_perstep_with = data_with / nsteps  # Time per step
+        data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2', 
+                        'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
         
+        mean_with = df[data_cols_with].mean(axis=1).values
+        std_with = df[data_cols_with].std(axis=1).values
+        time_perstep_with = (mean_with / nsteps)
+        time_perstep_std_with = (std_with / nsteps)
+                    
         # Calculate the per step for each nstep
 
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_without, 
-            marker='o', 
-            color='red', 
-            label='Without Graph', 
-            linestyle='--'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='Without Graph', 
+        #     linestyle='--'
+        # )
+        
+        line_obj1 = plt.errorbar(
+            nsteps,
+            time_perstep_without,
+            yerr=time_perstep_std_without,
+            marker='o',
+            linestyle='--',
+            capsize=3,
+            color='red',
+            label=f"Without Graph"
         )
 
+
         # Plot Percentage Difference With First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_with, 
-            marker='o', 
-            color='red',  # Changed color for distinction
-            label='With Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_with, 
+        #     marker='o', 
+        #     color='red',  # Changed color for distinction
+        #     label='With Graph', 
+        #     linestyle='-'
+        # )
+        
+        line_obj2 = plt.errorbar(
+            nsteps,
+            time_perstep_with,
+            yerr=time_perstep_std_with,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"With Graph"
         )
 
         # Annotate Percentage Difference Without
@@ -390,22 +420,35 @@ def generate_gpudiffperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['DiffPerStepWithout1','DiffPerStepWithout2',
-                           'DiffPerStepWithout3','DiffPerStepWithout4']].mean(axis=1).values
+        data_cols_without = ['DiffPerStepWithout1','DiffPerStepWithout2',
+                           'DiffPerStepWithout3','DiffPerStepWithout4']
         # data_with = df[['DiffPerStepWith1','DiffPerStepWith2',
         #                 'DiffPerStepWith3','DiffPerStepWith4']].mean(axis=1).values
+        
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
 
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            data_without, 
-            marker='o', 
-            color='red', 
-            label='With vs Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     mean_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='With vs Without Graph', 
+        #     linestyle='-'
+        # )
+        line_obj = plt.errorbar(
+            nsteps,
+            mean_without,
+            yerr=std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"Δ(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -419,7 +462,7 @@ def generate_gpudiffperstep_plot(csv_path, output_dir):
         # )
 
         # Annotate Percentage Difference Without
-        for x, y in zip(nsteps, data_without):
+        for x, y in zip(nsteps, mean_without):
             plt.text(
                 x, y, f'{y:.3f}ms', 
                 fontsize=9, 
@@ -477,22 +520,36 @@ def generate_gpudiffpercent_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['DiffPercentWithout1', 'DiffPercentWithout2', 
-                                            'DiffPercentWithout3', 'DiffPercentWithout4']].mean(axis=1).values
+        data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2', 
+                                            'DiffPercentWithout3', 'DiffPercentWithout4']
         # data_with = df[['DiffPercentWith1', 'DiffPercentWith2', 
         #                                  'DiffPercentWith3', 'DiffPercentWith4']].mean(axis=1).values
 
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            data_without, 
-            marker='o', 
-            color='red', 
-            label='With vs Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     mean_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='With vs Without Graph', 
+        #     linestyle='-'
+        # )
+        
+        line_obj = plt.errorbar(
+            nsteps,
+            mean_without,
+            yerr=std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"%Diff(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -506,7 +563,7 @@ def generate_gpudiffpercent_plot(csv_path, output_dir):
         # )
 
         # Annotate Percentage Difference Without
-        for x, y in zip(nsteps, data_without):
+        for x, y in zip(nsteps, mean_without):
             plt.text(
                 x, y, f'{y:.2f}%', 
                 fontsize=9, 
@@ -564,13 +621,22 @@ def generate_cputimeperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_without = df[['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
-                                            'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']].mean(axis=1).values
-        time_perstep_without = data_without / nsteps
+        data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
+                                            'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
+        # time_perstep_without = data_without / nsteps
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        time_perstep_without = mean_without / nsteps
+        time_perstep_std_without = std_without / nsteps
         
-        data_with = df[['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
-                                         'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']].mean(axis=1).values
-        time_perstep_with = data_with / nsteps
+        
+        data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
+                                         'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
+        # time_perstep_with = data_with / nsteps
+        mean_with = df[data_cols_with].mean(axis=1).values
+        std_with = df[data_cols_with].std(axis=1).values
+        time_perstep_with = mean_with / nsteps
+        time_perstep_std_with = std_with / nsteps
 
         # Calculate the per step for each nstep
         
@@ -578,23 +644,44 @@ def generate_cputimeperstep_plot(csv_path, output_dir):
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_without, 
-            marker='o', 
-            color='red', 
-            label='Without Graph', 
-            linestyle='--'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='Without Graph', 
+        #     linestyle='--'
+        # )
+        
+        line_obj1 = plt.errorbar(
+            nsteps,
+            time_perstep_without,
+            yerr=time_perstep_std_without,
+            marker='o',
+            linestyle='--',
+            capsize=3,
+            color='red',
+            label=f"Without Graph"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_with, 
-            marker='o', 
-            color='red',  # Changed color for distinction
-            label='With Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_with, 
+        #     marker='o', 
+        #     color='red',  # Changed color for distinction
+        #     label='With Graph', 
+        #     linestyle='-'
+        # )
+        line_obj2 = plt.errorbar(
+            nsteps,
+            time_perstep_with,
+            yerr=time_perstep_std_with,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"With Graph"
         )
 
         # Annotate Percentage Difference Without
@@ -656,22 +743,35 @@ def generate_cpudiffperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_without = df[['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
-                           'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']].mean(axis=1).values
+        data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
+                           'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
         # data_with = df[['ChronoDiffPerStepWith1','ChronoDiffPerStepWith2',
         #                 'ChronoDiffPerStepWith3','ChronoDiffPerStepWith4']].mean(axis=1).values
 
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            data_without, 
-            marker='o', 
-            color='red', 
-            label='With vs Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     data_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='With vs Without Graph', 
+        #     linestyle='-'
+        # )
+        line_obj = plt.errorbar(
+            nsteps,
+            mean_without,
+            yerr=std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"Δ(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -685,7 +785,7 @@ def generate_cpudiffperstep_plot(csv_path, output_dir):
         # )
 
         # Annotate Percentage Difference Without
-        for x, y in zip(nsteps, data_without):
+        for x, y in zip(nsteps, mean_without):
             plt.text(
                 x, y, f'{y:.3f}ms', 
                 fontsize=9, 
@@ -742,22 +842,34 @@ def generate_cpudiffpercent_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_without = df[['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
-                           'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']].mean(axis=1).values
+        data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
+                           'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
         # data_with = df[['ChronoDiffPercentWith1','ChronoDiffPercentWith2',
         #                 'ChronoDiffPercentWith3','ChronoDiffPercentWith4']].mean(axis=1).values
-
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            data_without, 
-            marker='o', 
-            color='red', 
-            label='With vs Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     data_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='With vs Without Graph', 
+        #     linestyle='-'
+        # )
+        line_obj = plt.errorbar(
+            nsteps,
+            mean_without,
+            yerr=std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"%Diff(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -771,7 +883,7 @@ def generate_cpudiffpercent_plot(csv_path, output_dir):
         # )
 
         # Annotate Percentage Difference Without
-        for x, y in zip(nsteps, data_without):
+        for x, y in zip(nsteps, mean_without):
             plt.text(
                 x, y, f'{y:.2f}%', 
                 fontsize=9, 
@@ -832,41 +944,69 @@ def generate_launchtimeperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         
-        data_without = df[['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
-                          'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']].mean(axis=1).values
-        time_perstep_without = data_without / nsteps
+        data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
+                          'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
+        # time_perstep_without = data_without / nsteps
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        time_perstep_without = (mean_without / nsteps) * 1000
+        time_perstep_std_without = (std_without / nsteps) * 1000
         
-        data_with = df[['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
-                        'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']].mean(axis=1).values
-        time_perstep_with = data_with / nsteps
+        data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
+                        'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
+        # time_perstep_with = data_with / nsteps
+        mean_with = df[data_cols_with].mean(axis=1).values
+        std_with = df[data_cols_with].std(axis=1).values
+        time_perstep_with = (mean_with / nsteps) * 1000
+        time_perstep_std_with = (std_with / nsteps) * 1000
         
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_without, 
-            marker='o', 
-            color='red', 
-            label='Without Graph', 
-            linestyle='--'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='Without Graph', 
+        #     linestyle='--'
+        # )
+        line_obj1 = plt.errorbar(
+            nsteps,
+            time_perstep_without,
+            yerr=time_perstep_std_without,
+            marker='o',
+            linestyle='--',
+            capsize=3,
+            color='red',
+            label=f"Without Graph"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_with, 
-            marker='o', 
-            color='red',  # Changed color for distinction
-            label='With Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_with, 
+        #     marker='o', 
+        #     color='red',  # Changed color for distinction
+        #     label='With Graph', 
+        #     linestyle='-'
+        # )
+        line_obj2 = plt.errorbar(
+            nsteps,
+            time_perstep_with,
+            yerr=time_perstep_std_with,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"With Graph"
         )
 
         # Annotate Percentage Difference Without
         for x, y in zip(nsteps, time_perstep_without):
             plt.text(
-                x, y, f'{y:.3f}ms', 
+                x, y, f'{y:.2f}', 
                 fontsize=9, 
                 color='black', 
                 ha='left', 
@@ -876,7 +1016,7 @@ def generate_launchtimeperstep_plot(csv_path, output_dir):
         # Annotate Percentage Difference With
         for x, y in zip(nsteps, time_perstep_with):
             plt.text(
-                x, y, f'{y:.3f}ms', 
+                x, y, f'{y:.2f}', 
                 fontsize=9, 
                 color='black', 
                 ha='left', 
@@ -887,7 +1027,8 @@ def generate_launchtimeperstep_plot(csv_path, output_dir):
 
         plt.title(f'Launch Time Per Iteration in CUDA (NVIDIA Tesla T4): {title_test} Test', fontsize=font_size)
         plt.xlabel('NSTEP (Number of Iterations)')
-        plt.ylabel('Time Per Iteration (ms)')
+        # plt.ylabel('Time Per Iteration (ms)')
+        plt.ylabel('Time Per Iteration (μs)')
         plt.xscale('log')  # Use log scale for NSTEP
         plt.grid(True, which='both', linestyle='--', alpha=0.6)
         plt.legend()
@@ -921,9 +1062,14 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_without = df[['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
-                          'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']].mean(axis=1).values
-        time_perstep_without = data_without / nsteps
+        data_cols_without = ['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
+                          'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']
+        # time_perstep_without = data_without / nsteps
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        time_perstep_without = (mean_without / nsteps) * 1000
+        time_perstep_std_without = (std_without / nsteps) * 1000
+        
         
         # data_with = df[['ChronoDiffLaunchTimeWith1','ChronoDiffLaunchTimeWith2',
         #                 'ChronoDiffLaunchTimeWith3','ChronoDiffLaunchTimeWith4']].mean(axis=1).values
@@ -933,13 +1079,23 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
         plt.figure(figsize=(plot_w, plot_h))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            time_perstep_without, 
-            marker='o', 
-            color='red', 
-            label='Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     time_perstep_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='Without Graph', 
+        #     linestyle='-'
+        # )
+        line_obj = plt.errorbar(
+            nsteps,
+            time_perstep_without,
+            yerr=time_perstep_std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"Δ(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -955,7 +1111,7 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
         # Annotate Percentage Difference Without
         for x, y in zip(nsteps, time_perstep_without):
             plt.text(
-                x, y, f'{y:.3f}ms', 
+                x, y, f'{y:.1f}', 
                 fontsize=9, 
                 color='black', 
                 ha='left', 
@@ -976,7 +1132,7 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
 
         plt.title(f'Launch Total Time Difference in CUDA (NVIDIA Tesla T4): {title_test} Test', fontsize=font_size)
         plt.xlabel('NSTEP (Number of Iterations)')
-        plt.ylabel('Total Time Difference (ms)')
+        plt.ylabel('Total Time Difference (μs)')
         plt.xscale('log')  # Use log scale for NSTEP
         plt.grid(True, which='both', linestyle='--', alpha=0.6)
         plt.legend()
@@ -1011,22 +1167,36 @@ def generate_launchdiffpercent_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
-                           'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']].mean(axis=1).values
+        data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
+                           'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
         # data_with = df[['ChronoDiffLaunchPercentWith1','ChronoDiffLaunchPercentWith2',
         #                 'ChronoDiffLaunchPercentWith3','ChronoDiffLaunchPercentWith4']].mean(axis=1).values
-
+        mean_without = df[data_cols_without].mean(axis=1).values
+        std_without = df[data_cols_without].std(axis=1).values
+        
+        
+        
         # Plotting
         plt.figure(figsize=(8, 6))
 
         # Plot Percentage Difference Without First Run/Graph Creation
-        plt.plot(
-            nsteps, 
-            data_without, 
-            marker='o', 
-            color='red', 
-            label='With vs Without Graph', 
-            linestyle='-'
+        # plt.plot(
+        #     nsteps, 
+        #     data_without, 
+        #     marker='o', 
+        #     color='red', 
+        #     label='With vs Without Graph', 
+        #     linestyle='-'
+        # )
+        line_obj = plt.errorbar(
+            nsteps,
+            mean_without,
+            yerr=std_without,
+            marker='o',
+            linestyle='-',
+            capsize=3,
+            color='red',
+            label=f"%Diff(With vs Without)"
         )
 
         # Plot Percentage Difference With First Run/Graph Creation
@@ -1040,7 +1210,7 @@ def generate_launchdiffpercent_plot(csv_path, output_dir):
         # )
 
         # Annotate Percentage Difference Without
-        for x, y in zip(nsteps, data_without):
+        for x, y in zip(nsteps, mean_without):
             plt.text(
                 x, y, f'{y:.2f}%', 
                 fontsize=9, 

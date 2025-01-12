@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-plot_w = 8
+plot_w = 9
 plot_h = 6
 font_size = 10
 
 GPU_COLORS = {
-    "T4": "red",
-    "L4": "darkorange",
-    "AMD": "blue",
+    "Nvidia T4": "red",
+    "Nvidia L4": "darkorange",
+    "AMD Radeon Pro W7800": "blue",
     # Add more mappings if you have more GPUs
 }
 
@@ -68,35 +68,81 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             nsteps = df['NSTEP'].values
 
             # Time WITHOUT Graph
-            data_without = df[['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2',
-                               'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']].mean(axis=1).values
-            time_perstep_without = data_without / nsteps
+            data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2',
+                               'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
+            
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            time_perstep_without = mean_without / nsteps
+            time_perstep_std_without = std_without / nsteps
+            
 
             # Time WITH Graph
-            data_with = df[['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2',
-                            'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']].mean(axis=1).values
-            time_perstep_with = data_with / nsteps
+            data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2',
+                            'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
+            
+            mean_with = df[data_cols_with].mean(axis=1).values
+            std_with = df[data_cols_with].std(axis=1).values
+            time_perstep_with = mean_with / nsteps
+            time_perstep_std_with = std_with / nsteps
 
             color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
             
-            # Plot lines
-            line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
-                     color=color,
-                     label=f"{gpu_label} - Without Graph")
-             # Annotate
-            for x, y in zip(nsteps, time_perstep_without):
-                plt.text(x, y+0.01, f"{y:.3f}", fontsize=9, 
-                         color=line_obj1.get_color(),  # use the line color
-                         ha="left", va="bottom")
+            line_obj1 = plt.errorbar(
+                nsteps,
+                time_perstep_without,
+                yerr=time_perstep_std_without,
+                marker='o',
+                linestyle='--',
+                capsize=3,   # Add little caps on the error bars
+                color=color,
+                label=f"{gpu_label} - Without Graph"
+            )
 
-            line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
-                     color=color,
-                     label=f"{gpu_label} - With Graph+")
+            line_obj2 = plt.errorbar(
+                nsteps,
+                time_perstep_with,
+                yerr=time_perstep_std_with,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - With Graph+"
+            )
+            
+            
+            # Plot lines
+            # line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
+            #          color=color,
+            #          label=f"{gpu_label} - Without Graph")
+            
              # Annotate
-            for x, y in zip(nsteps, time_perstep_with):
-                plt.text(x, y-0.01, f"{y:.3f}+", fontsize=9, 
-                        color=line_obj2.get_color(),  # use the line color 
-                         ha="right", va="top")
+            if test_name == "complex_3_different_kernels":
+                for x, y in zip(nsteps, time_perstep_without):
+                    plt.text(x, y+0.00, f"{y:.3f}", fontsize=9, 
+                             color=line_obj1[0].get_color(),  # use the line color
+                             ha="right", va="top")
+            else:
+                for x, y in zip(nsteps, time_perstep_without):
+                    plt.text(x, y+0.00, f"{y:.3f}", fontsize=9, 
+                            color=line_obj1[0].get_color(),  # use the line color
+                            ha="left", va="bottom")
+
+            # line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
+            #          color=color,
+            #          label=f"{gpu_label} - With Graph+")
+            
+             # Annotate
+            if test_name == "complex_3_different_kernels":
+                for x, y in zip(nsteps, time_perstep_with):
+                    plt.text(x, y-0.00, f"{y:.3f}+", fontsize=9, 
+                            color=line_obj2[0].get_color(),  # use the line color 
+                            ha="left", va="bottom")
+            else:
+                for x, y in zip(nsteps, time_perstep_with):
+                    plt.text(x, y-0.00, f"{y:.3f}+", fontsize=9, 
+                            color=line_obj2[0].get_color(),  # use the line color 
+                            ha="right", va="top")
 
             
         except Exception as e:
@@ -129,13 +175,42 @@ def generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['DiffPerStepWithout1', 'DiffPerStepWithout2',
-                               'DiffPerStepWithout3', 'DiffPerStepWithout4']].mean(axis=1).values
-
-            plt.plot(nsteps, data_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - Δ(With vs Without)")
-            for x, y in zip(nsteps, data_without):
-                plt.text(x, y, f"{y:.4f}", fontsize=9, ha="left", va="top")
+            data_cols_without = ['DiffPerStepWithout1', 'DiffPerStepWithout2',
+                               'DiffPerStepWithout3', 'DiffPerStepWithout4']
+            
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+                        
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+                        
+            line_obj = plt.errorbar(
+                nsteps,
+                mean_without,
+                yerr=std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - Δ(With vs Without)"
+            )
+            # plt.plot(nsteps, mean_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - Δ(With vs Without)")
+            
+            if test_name == "complex_3_different_kernels" and gpu_label == "T4":
+                for x, y in zip(nsteps, mean_without):
+                    plt.text(x, y, f"{y:.4f}", fontsize=9, 
+                                color=line_obj[0].get_color(), 
+                                ha="right", va="bottom")
+            elif test_name == "complex_3_different_kernels" and gpu_label == "L4":
+                for x, y in zip(nsteps, mean_without):
+                    plt.text(x, y, f"{y:.4f}", fontsize=9, 
+                                color=line_obj[0].get_color(), 
+                                ha="left", va="bottom")
+            else:
+                for x, y in zip(nsteps, mean_without):
+                    plt.text(x, y, f"{y:.4f}", fontsize=9,
+                            color=line_obj[0].get_color(), 
+                            ha="left", va="top")
                 
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
@@ -165,13 +240,37 @@ def generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['DiffPercentWithout1', 'DiffPercentWithout2',
-                               'DiffPercentWithout3', 'DiffPercentWithout4']].mean(axis=1).values
-
-            plt.plot(nsteps, data_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - %Diff(With vs Without)")
-            for x, y in zip(nsteps, data_without):
-                plt.text(x, y, f"{y:.2f}%", fontsize=9, ha="left", va="top")
+            data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2',
+                               'DiffPercentWithout3', 'DiffPercentWithout4']
+            
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            
+            line_obj = plt.errorbar(
+                nsteps,
+                mean_without,
+                yerr=std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - %Diff(With vs Without)"
+            )
+            
+            # plt.plot(nsteps, mean_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - %Diff(With vs Without)")
+            if test_name == "complex_3_different_kernels" and gpu_label == "T4":
+                for x, y in zip(nsteps, mean_without):
+                    plt.text(x, y, f"{y:.2f}%", fontsize=9, 
+                             color=line_obj[0].get_color(), 
+                             ha="right", va="bottom")
+            else:
+                for x, y in zip(nsteps, mean_without):
+                    plt.text(x, y, f"{y:.2f}%", fontsize=9, 
+                            color=line_obj[0].get_color(), 
+                            ha="left", va="top")
             
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
@@ -201,29 +300,59 @@ def generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2',
-                               'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']].mean(axis=1).values
-            time_perstep_without = data_without / nsteps
-
-            data_with = df[['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2',
-                            'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']].mean(axis=1).values
-            time_perstep_with = data_with / nsteps
+            data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2',
+                               'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
             
-            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            time_perstep_without = mean_without / nsteps
+            time_perstep_std_without = std_without / nsteps
 
-            line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
-                     color=color,
-                     label=f"{gpu_label} - Without Graph")
+            data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2',
+                            'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
+            
+            mean_with = df[data_cols_with].mean(axis=1).values
+            std_with = df[data_cols_with].std(axis=1).values
+            time_perstep_with = mean_with / nsteps
+            time_perstep_std_with = std_with / nsteps
+
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            
+            line_obj1 = plt.errorbar(
+                nsteps,
+                time_perstep_without,
+                yerr=time_perstep_std_without,
+                marker='o',
+                linestyle='--',
+                capsize=3,   # Add little caps on the error bars
+                color=color,
+                label=f"{gpu_label} - Without Graph"
+            )
+
+            line_obj2 = plt.errorbar(
+                nsteps,
+                time_perstep_with,
+                yerr=time_perstep_std_with,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - With Graph+"
+            )
+            
+            # line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
+            #          color=color,
+            #          label=f"{gpu_label} - Without Graph")
             for x, y in zip(nsteps, time_perstep_without):
                 plt.text(x, y+0.01, f"{y:.3f}", fontsize=9, 
-                         color=line_obj1.get_color(),  # use the line color 
+                         color=line_obj1[0].get_color(),  # use the line color 
                          ha="left", va="bottom")
-            line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
-                     color=color,
-                     label=f"{gpu_label} - With Graph+")
+            # line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
+            #          color=color,
+            #          label=f"{gpu_label} - With Graph+")
             for x, y in zip(nsteps, time_perstep_with):
                 plt.text(x, y-0.01, f"{y:.3f}+", fontsize=9, 
-                         color=line_obj2.get_color(),  # use the line color
+                         color=line_obj2[0].get_color(),  # use the line color
                          ha="right", va="top")
 
         except Exception as e:
@@ -251,12 +380,31 @@ def generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
-                               'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']].mean(axis=1).values
-            plt.plot(nsteps, data_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - Δ(With vs Without)")
-            for x, y in zip(nsteps, data_without):
-                plt.text(x, y, f"{y:.4f}", fontsize=9, ha="left", va="top")
+            data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
+                               'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
+            
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            
+            line_obj = plt.errorbar(
+                nsteps,
+                mean_without,
+                yerr=std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - Δ(With vs Without)"
+            )
+            
+            # plt.plot(nsteps, mean_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - Δ(With vs Without)")
+            for x, y in zip(nsteps, mean_without):
+                plt.text(x, y, f"{y:.4f}", fontsize=9, 
+                         color=line_obj[0].get_color(),
+                         ha="left", va="top")
             
 
         except Exception as e:
@@ -283,12 +431,31 @@ def generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
-            data_without = df[['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
-                               'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']].mean(axis=1).values
-            plt.plot(nsteps, data_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - %Diff(With vs Without)")
-            for x, y in zip(nsteps, data_without):
-                plt.text(x, y, f"{y:.2f}%", fontsize=9, ha="left", va="top")
+            data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
+                               'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
+            
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            
+            line_obj = plt.errorbar(
+                nsteps,
+                mean_without,
+                yerr=std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - %Diff(With vs Without)"
+            )
+            
+            # plt.plot(nsteps, data_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - %Diff(With vs Without)")
+            for x, y in zip(nsteps, mean_without):
+                plt.text(x, y, f"{y:.2f}%", fontsize=9, 
+                         color=line_obj[0].get_color(),
+                         ha="left", va="top")
                 
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
@@ -318,36 +485,67 @@ def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
-                               'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']].mean(axis=1).values
-            time_perstep_without = data_without / nsteps
-
-            data_with = df[['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
-                            'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']].mean(axis=1).values
-            time_perstep_with = data_with / nsteps
+            data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
+                               'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
             
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            time_perstep_without = (mean_without / nsteps) * 1000
+            time_perstep_std_without = (std_without / nsteps) * 1000
+
+            data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
+                            'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
+            
+            mean_with = df[data_cols_with].mean(axis=1).values
+            std_with = df[data_cols_with].std(axis=1).values
+            time_perstep_with = (mean_with / nsteps) * 1000
+            time_perstep_std_with = (std_with / nsteps) * 1000
+
             color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
             
-            line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
-                     color=color,
-                     label=f"{gpu_label} - Without Graph")
+            line_obj1 = plt.errorbar(
+                nsteps,
+                time_perstep_without,
+                yerr=time_perstep_std_without,
+                marker='o',
+                linestyle='--',
+                capsize=3,   # Add little caps on the error bars
+                color=color,
+                label=f"{gpu_label} - Without Graph"
+            )
+
+            line_obj2 = plt.errorbar(
+                nsteps,
+                time_perstep_with,
+                yerr=time_perstep_std_with,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - With Graph+"
+            )
+            
+            # line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
+            #          color=color,
+            #          label=f"{gpu_label} - Without Graph")
             for x, y in zip(nsteps, time_perstep_without):
-                plt.text(x, y+0.0000, f"{y:.4f}", fontsize=9, 
-                         color=line_obj1.get_color(),  # use the line color
+                plt.text(x, y+0.0000, f"{y:.1f}", fontsize=9, 
+                         color=line_obj1[0].get_color(),  # use the line color
                          ha="left", va="bottom")
-            line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
-                     color=color,
-                     label=f"{gpu_label} - With Graph+")
+            # line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
+            #          color=color,
+            #          label=f"{gpu_label} - With Graph+")
             for x, y in zip(nsteps, time_perstep_with):
-                plt.text(x, y-0.0000, f"{y:.4f}+", fontsize=9, 
-                         color=line_obj2.get_color(),  # use the line color 
+                plt.text(x, y-0.0000, f"{y:.1f}+", fontsize=9, 
+                         color=line_obj2[0].get_color(),  # use the line color 
                          ha="left", va="top")
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
 
     plt.title(f"[Launch Time/Step] {test_name}", fontsize=font_size)
     plt.xlabel("NSTEP (Number of Iterations)")
-    plt.ylabel("Time Per Iteration (ms)")
+    plt.ylabel("Time Per Iteration (μs)")
+    # plt.ylabel("Time Per Iteration (ms)")
     plt.xscale("log")
     plt.grid(True, which="both", linestyle="--", alpha=0.6)
     plt.legend()
@@ -367,20 +565,45 @@ def generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
-                               'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']].mean(axis=1).values
-            time_perstep_without = data_without / nsteps
+            data_cols_without = [
+                'ChronoDiffLaunchTimeWithout1',
+                'ChronoDiffLaunchTimeWithout2',
+                'ChronoDiffLaunchTimeWithout3',
+                'ChronoDiffLaunchTimeWithout4'
+            ]
+            
+            mean_without = (df[data_cols_without].mean(axis=1).values)
+            std_without = (df[data_cols_without].std(axis=1).values)
+            time_perstep_without = (mean_without / nsteps) * 1000
+            time_perstep_std_without = (std_without / nsteps) * 1000
+            
+            
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+                        
+            line_obj = plt.errorbar(
+                nsteps,
+                time_perstep_without,
+                yerr=time_perstep_std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - Δ(With vs Without)"
+            )
 
-            plt.plot(nsteps, time_perstep_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - Δ(With vs Without)")
+            # plt.plot(nsteps, mean_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - Δ(With vs Without)")
             for x, y in zip(nsteps, time_perstep_without):
-                plt.text(x, y, f"{y:.4f}", fontsize=9, ha="left", va="top")
+                plt.text(x, y, f"{y:.2f}", fontsize=9, 
+                         color=line_obj[0].get_color(),
+                         ha="left", va="top")
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
 
     plt.title(f"[Launch Diff/Step] {test_name}", fontsize=font_size)
     plt.xlabel("NSTEP (Number of Iterations)")
-    plt.ylabel("Time Difference (ms)")
+    plt.ylabel("Time Difference (μs)")
+    # plt.ylabel("Time Difference (ms)")
     plt.xscale("log")
     plt.grid(True, which="both", linestyle="--", alpha=0.6)
     plt.legend()
@@ -400,13 +623,31 @@ def generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_without = df[['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
-                               'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']].mean(axis=1).values
+            data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
+                               'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
 
-            plt.plot(nsteps, data_without, marker='o', linestyle='-',
-                     label=f"{gpu_label} - %Diff(With vs Without)")
-            for x, y in zip(nsteps, data_without):
-                plt.text(x, y, f"{y:.2f}%", fontsize=9, ha="left", va="top")
+            mean_without = df[data_cols_without].mean(axis=1).values
+            std_without = df[data_cols_without].std(axis=1).values
+            
+            color = GPU_COLORS.get(gpu_label, "black")  # fallback is black if not found
+            
+            line_obj = plt.errorbar(
+                nsteps,
+                mean_without,
+                yerr=std_without,
+                marker='o',
+                linestyle='-',
+                capsize=3,
+                color=color,
+                label=f"{gpu_label} - %Diff(With vs Without)"
+            )
+            
+            # plt.plot(nsteps, mean_without, marker='o', linestyle='-',
+            #          label=f"{gpu_label} - %Diff(With vs Without)")
+            for x, y in zip(nsteps, mean_without):
+                plt.text(x, y, f"{y:.1f}%", fontsize=9, 
+                         color=line_obj[0].get_color(),
+                         ha="left", va="top")
         except Exception as e:
             print(f"Failed to process {csv_path} ({gpu_label}): {e}")
 
@@ -480,8 +721,7 @@ def main():
         generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir)
         generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir)
 
-        # If you still want the "extras" combined, you'd make similar 
-        # "for_test" versions, e.g. generate_cputotaltime_plot_for_test(...).
+        # Extras:
         # generate_cputotaltime_plot_for_test(...)
         # generate_launchtotaltime_plot_for_test(...)
         # generate_launchdifftotal_plot_for_test(...)

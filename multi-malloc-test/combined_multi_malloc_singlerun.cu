@@ -629,7 +629,6 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     // CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), captureStream));
     // CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), captureStream));
-    // // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), captureStream));
     // CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), captureStream));
     // CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), captureStream));
 
@@ -640,7 +639,6 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     CUDA_CHECK(cudaMallocAsync(&d_arrayA, arraySizeA*sizeof(double), captureStream));
     CUDA_CHECK(cudaMallocAsync(&d_arrayB, arraySizeB*sizeof(int), captureStream));
-    // CUDA_CHECK(cudaMallocAsync(&d_arrayC, arraySizeC*sizeof(double), captureStream));
     CUDA_CHECK(cudaMallocAsync(&d_arrayD, arraySizeD*sizeof(float), captureStream));
     CUDA_CHECK(cudaMallocAsync(&d_arrayE, arraySizeE*sizeof(int), captureStream));
 
@@ -661,7 +659,6 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     CUDA_CHECK(cudaFreeAsync(d_arrayA, captureStream));
     CUDA_CHECK(cudaFreeAsync(d_arrayB, captureStream));
-    // CUDA_CHECK(cudaFreeAsync(d_arrayC, captureStream));
     CUDA_CHECK(cudaFreeAsync(d_arrayD, captureStream));
     CUDA_CHECK(cudaFreeAsync(d_arrayE, captureStream));
 
@@ -670,7 +667,11 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     cudaGraphExec_t graphExec;
     CUDA_CHECK(cudaGraphInstantiate(&graphExec, graph, nullptr, nullptr, 0));
+
     CUDA_CHECK(cudaGraphDestroy(graph));
+
+    // First Graph Launch
+    CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
 
     const auto graphEnd = std::chrono::steady_clock::now();
     CUDA_CHECK(cudaEventRecord(graphCreateStop, captureStream));

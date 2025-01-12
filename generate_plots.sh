@@ -14,9 +14,12 @@ CSV_FILES=(
 
 # Output directory for plots
 OUTPUT_DIR="./output_plots"
+# OUTPUT_DIR="./output_plots_combined"
 
 # Path to the Python script
 PYTHON_SCRIPT="./plot_generator.py"
+# PYTHON_SCRIPT="./plot_combined_generator.py"
+
 
 # Check if the Python script exists
 if [[ ! -f "$PYTHON_SCRIPT" ]]; then

@@ -627,6 +627,9 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     // Destroy the graph template if not needed
     CUDA_CHECK(cudaGraphDestroy(graph));
 
+    // First Graph Launch
+    CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
+
     const auto graphEnd = std::chrono::steady_clock::now();
     // Stop measuring graph creation time
     CUDA_CHECK(cudaEventRecord(graphCreateStop, captureStream));

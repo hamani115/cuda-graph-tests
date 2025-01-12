@@ -634,7 +634,11 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
     cudaGraphExec_t graphExec;
     CUDA_CHECK(cudaGraphInstantiate(&graphExec, graph, nullptr, nullptr, 0));
+
     CUDA_CHECK(cudaGraphDestroy(graph));
+
+    // First Graph Launch
+    CUDA_CHECK(cudaGraphLaunch(graphExec, captureStream));
 
     const auto graphEnd = std::chrono::steady_clock::now();
     CUDA_CHECK(cudaEventRecord(graphCreateStop, captureStream));
