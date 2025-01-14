@@ -320,7 +320,7 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
     std::vector<int> nsteps = generateSequence(NSTEP);
 
     // Execute the sequence multiple times
-    for(int i = 1; i <= NSTEP; ++i){
+    for(int i = 1; i <= NSTEP; i++){
 
         for (size_t j = 0; j < arraySize; j++) {
             h_array[j] = initValue;
@@ -381,7 +381,7 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
             for (const auto& num : nsteps) {
                 if (num == i) {
                     // Calculate mean and standard deviation
-                    float meanTime = (totalTime + firstCreateTime) / i;
+                    float meanTime = (totalTime + firstCreateTime) / (i + 1 - SKIPBY);
                     double varianceTime = (count > 1) ? M2 / (count - 1) : 0.0;
                     double stdDevTime = sqrt(varianceTime);
 
@@ -396,7 +396,7 @@ void runWithoutGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& t
                     std::cout << "=======Results (No Graph) for NSTEP " << i << "=======" << std::endl;
                     std::cout << "First Run: " << firstCreateTime << " ms" << std::endl;
                     std::cout << "Average Time with firstRun: " << meanTime << " ms" << std::endl;
-                    std::cout << "Average Time without firstRun: " << (totalTime / (i - 1 - SKIPBY)) << " ms" << std::endl;
+                    std::cout << "Average Time without firstRun: " << (totalTime / (i - SKIPBY)) << " ms" << std::endl;
                     std::cout << "Variance: " << varianceTime << " ms^2" << std::endl;
                     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
                     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
@@ -545,6 +545,8 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     // Destroy the graph template if not needed
     CUDA_CHECK(cudaGraphDestroy(graph));
 
+    // First Graph Launch
+
     const auto graphEnd = std::chrono::steady_clock::now();
     // Stop measuring graph creation time
     CUDA_CHECK(cudaEventRecord(graphCreateStop, captureStream));
@@ -581,7 +583,7 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
     // }
 
     // Launch the graph multiple times
-    for(int i = 1; i <= NSTEP; ++i){
+    for(int i = 1; i <= NSTEP; i++){
 
         for (size_t j = 0; j < arraySize; j++) {
             h_array[j] = initValue;
@@ -624,7 +626,7 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
             for (const auto& num : nsteps) {
                 if (num == i) {
                     // Calculate mean and standard deviation
-                    float meanTime = (totalTime + graphCreateTime) / i;
+                    float meanTime = (totalTime + graphCreateTime) / (i + 1 - SKIPBY);
                     double varianceTime = (count > 1) ? M2 / (count - 1) : 0.0;
                     double stdDevTime = sqrt(varianceTime);
 
@@ -639,7 +641,7 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
                     std::cout << "=======Results (With Graph) for NSTEP " << i << "=======" << std::endl;
                     std::cout << "Graph Creation Time: " << graphCreateTime << " ms" << std::endl;
                     std::cout << "Average Time with Graph: " << meanTime << " ms" << std::endl;
-                    std::cout << "Average Time without Graph: " << (totalTime / (i - 1 - SKIPBY)) << " ms" << std::endl;
+                    std::cout << "Average Time without Graph: " << (totalTime / (i - SKIPBY)) << " ms" << std::endl;
                     std::cout << "Variance: " << varianceTime << " ms^2" << std::endl;
                     std::cout << "Standard Deviation: " << stdDevTime << " ms" << std::endl;
                     std::cout << "Time Spread: " << lowerTime << " - " << upperTime << " ms" << std::endl;
@@ -789,22 +791,22 @@ int main(int argc, char* argv[]) {
 
         // Compute the difference
         float difference = noneGraphTotalTimeWithArr[i] - graphTotalTimeWithArr[i];
-        float diffPerKernel = difference / (nsteps[i]);
+        float diffPerKernel = difference / (nsteps[i] + 1);
         float diffPercentage = (difference / noneGraphTotalTimeWithArr[i]) * 100;
 
         // Compute the difference for without including Graph
         float difference2 = noneGraphTotalTimeWithoutArr[i] - graphTotalTimeWithoutArr[i];
-        float diffPerKernel2 = difference2 / (nsteps[i]-1);
+        float diffPerKernel2 = difference2 / (nsteps[i]);
         float diffPercentage2 = (difference2 / noneGraphTotalTimeWithoutArr[i]) * 100;
 
         // Chrono Launch + Exec Time 
         float chronoDiffTotalTimeWith = chronoNoneGraphTotalTimeWithArr[i] - chronoGraphTotalTimeWithArr[i];
         float chronoDiffTotalTimeWithout = chronoNoneGraphTotalTimeWithoutArr[i] - chronoGraphTotalTimeWithoutArr[i];
         
-        float chronoDiffPerStepWith = chronoDiffTotalTimeWith / (nsteps[i]-1); 
+        float chronoDiffPerStepWith = chronoDiffTotalTimeWith / (nsteps[i] + 1); 
         float chronoDiffPercentWith = (chronoDiffTotalTimeWith / chronoNoneGraphTotalTimeWithArr[i]) * 100;
 
-        float chronoDiffPerStepWithout = chronoDiffTotalTimeWithout / (nsteps[i]-1); 
+        float chronoDiffPerStepWithout = chronoDiffTotalTimeWithout / (nsteps[i]); 
         float chronoDiffPercentWithout = (chronoDiffTotalTimeWithout / chronoNoneGraphTotalTimeWithoutArr[i]) * 100;
 
         // Chrono Launch Time
