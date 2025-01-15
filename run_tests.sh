@@ -31,12 +31,12 @@ echo "Running combined_multi_malloc_singlerun with arguments 10000 0"
 cd ..
 
 echo "Compiling combined_multi_stream2_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
-nvcc -arch=${OFFLOAD_ARCH} multi-stream-test/combined_multi_stream2_singlerun.cu -o multi-stream-test/combined_multi_stream2_singlerun
+nvcc -arch=${OFFLOAD_ARCH} multi-stream-test/combined_multi_stream_singlerun.cu -o multi-stream-test/combined_multi_stream_singlerun
 
 echo "Entering multi-stream-test directory"
 cd multi-stream-test/
-echo "Running combined_multi_stream2_singlerun with arguments 10000 0"
-./combined_multi_stream2_singlerun 10000 0
+echo "Running combined_multi_stream_singlerun with arguments 10000 0"
+./combined_multi_stream_singlerun 10000 0
 cd ..
 
 echo "Running generate_plots.sh"
