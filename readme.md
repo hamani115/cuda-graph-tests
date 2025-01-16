@@ -1,94 +1,71 @@
 # CUDA Graph Tests
 
-This repository contains tests and examples for CUDA Graphs. CUDA Graphs provide a mechanism to capture and replay a sequence of GPU operations, which can help optimize performance by reducing CPU overhead and improving GPU utilization.
-
-<!-- ## Directory Structure
-
-- `src/`: Contains the source code for the CUDA Graph tests.
-- `include/`: Header files used in the tests.
-- `data/`: Sample data files used for testing.
-- `scripts/`: Utility scripts for setting up and running tests.
-- `docs/`: Documentation related to the CUDA Graph tests. -->
+This repository contains various CUDA Graph tests and corresponding scripts to compile, run, and generate plots from the results. CUDA Graphs help optimize performance by reducing CPU overhead and improving GPU utilization.
 
 ## Getting Started
 
 ### Prerequisites
+- **CUDA Toolkit** installed (ensuring `nvcc` is in your PATH)
+- A **C++ compiler** supporting CUDA (e.g., GCC)
+- **Python 3** and any plotting libraries required by your Python scripts (e.g., `matplotlib`, `pandas`)
 
-- CUDA Toolkit installed
-- C++ compiler (e.g., GCC)
-<!-- - CMake for building the project -->
+### Repository Structure (Simplified)
+- **`complex-kernels-test/`**  
+  Contains a CUDA source file (`combined_3diffkernels_singlerun.cu`) and outputs a CSV file (`complex_3_different_kernels.csv`).
+- **`diffsize-kernels-test/`**  
+  Contains a CUDA source file (`combined_diffsize_kernels_singlerun.cu`) and outputs a CSV file (`complex_different_sizes_kernels.csv`).
+- **`multi-malloc-test/`**  
+  Contains a CUDA source file (`combined_multi_malloc_singlerun.cu`) and outputs a CSV file (`complex_multi_malloc.csv`).
+- **`multi-stream-test/`**  
+  Contains a CUDA source file (`combined_multi_stream2_singlerun.cu`) and outputs a CSV file (`complex_multi_stream_kernels.csv`).
+- **`plot_generator.py`**  
+  A Python script that reads one or more CSV files and generates plots in a designated output directory.
+- **`run_tests.sh`**  
+  A bash script that compiles each test and runs them sequentially, producing CSV output files.
+- **`generate_plots.sh`**  
+  A bash script that executes `plot_generator.py` with the relevant CSV files and outputs the resulting plots.
 
-### Building the Project
+## Usage
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/cuda-graph-tests.git
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/hamani115/cuda-graph-tests.git
     cd cuda-graph-tests
     ```
 
-2. Navigate to one of the test directories
-    ```sh
-    cd multi-kernel-test
+2. **Run the tests and generate plots**:
+    ```bash
+    bash run_tests.sh
     ```
-    Available tests are `memcpy-device-test`, `memcpy-host-test`, and `multi-kernel-test`.
+   This single script will:
+   - Compile each of the CUDA test programs (located in their respective directories).
+   - Execute them with predefined arguments (generating CSV files).
+   - Call `generate_plots.sh`, which in turn invokes `plot_generator.py` to create plots from the CSV results.
 
-3. Compile the files with prefered naming using `nvcc` compiler:
-    ```sh
-    nvcc graph_matrix_multiply.cu -o graph_matrix_multiply
-    ```
+3. **Examine the results**:
+   - **CSV files** are generated in each test’s directory (e.g., `complex_3_different_kernels.csv`).
+   - **Plots** are saved to the `./output_plots/` folder by default.
 
-4. Run the compiled file and check the result output:
-    ```sh
-    ./graph_matrix multiply
-    ```
+## Customizing the Tests or Plots
 
-### Variables for Testing
+- **Modifying Test Parameters**  
+  Each test directory (e.g., `complex-kernels-test/`, `diffsize-kernels-test/`) has its own `.cu` file. Look for variables such as `skipBy`, `NSTEP`, `N`, etc. You can change these before recompiling.
 
-1. multi-kernel-test
-    - modify `skipBy` value to change the number of graph launches time excluded from "Time Spread" at the start (`default` 0 skips).
-    - modify `NKERNEL` value to change the number of kernel launches in the graph instance.
-    - modify `NSTEP` value to change the number of graph launches.
-    - modify `N` value to change the number of dimensions of the matrix.
-2. memcpy-device-test
-    - modify `skipBy` value to change the number graph launches to skip at the start (`default` 100 skips).
-    - modify `NSTEP` value to change the number of graph launches.
-    - modify `N` value to change the number of elements in the array.
-3. memcpy-host-test
-    - modify `skipBy` value to change the number graph launches to skip at the start (`default` 100 skips).
-    - modify `NSTEP` value to change the number of graph launches.
-    - modify `N` value to change the number of elements in the array.
+- **Adding/Removing CSV Files**  
+  If you add new tests producing additional CSV files or remove existing ones, update the `CSV_FILES` array in `generate_plots.sh` accordingly. Any CSV path listed there will be passed to `plot_generator.py`.
 
-<!-- 2. Create a build directory and navigate into it:
-    ```sh
-    mkdir build
-    cd build
-    ```
+- **Using a Different Python Script**  
+  If you have multiple Python scripts for plotting, modify `PYTHON_SCRIPT` in `generate_plots.sh` to point to the desired script. Ensure the new script accepts the same arguments (CSV paths, output directory), or adjust accordingly.
 
-3. Run CMake to configure the project:
-    ```sh
-    cmake ..
-    ```
+- **Changing the Output Directory**  
+  By default, plots are saved to `./output_plots`. Update the `OUTPUT_DIR` variable in `generate_plots.sh` if you want a different location.
 
-4. Build the project:
-    ```sh
-    make
-    ``` -->
+## Notes
 
-<!-- ### Running Tests
+- The `OFFLOAD_ARCH` (e.g., `sm_75`) is set in `run_tests.sh`. Update it to match your GPU architecture if needed.
+- Ensure that your environment has the required Python packages to run the plotting scripts.
+- For more detailed control, you may run each `.cu` file separately with `nvcc` and then manually call `plot_generator.py`.
 
-After building the project, you can run the tests using the following command:
-```sh
-./run_tests
-``` -->
+---
 
-<!-- ## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request with your changes. -->
-
-<!-- ## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details. -->
-
-<!-- ## Contact
-
-For any questions or issues, please open an issue on the GitHub repository or contact the maintainer at your.email@example.com. -->
+*Feel free to open a GitHub issue or submit a PR if you encounter problems or wish to contribute improvements.*
