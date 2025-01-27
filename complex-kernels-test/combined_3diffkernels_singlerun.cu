@@ -33,38 +33,40 @@ __global__ void kernelC(double* arrayA, const int* arrayB, size_t size){
     if(x < size){ arrayA[x] += arrayB[x]; }
 }
 
+// After (replaced fixed-size arrays by vectors):
 struct CSVData {
     int NSTEP;
     int SKIPBY;
-    float noneGraphTotalTimeWithout[4];
-    float GraphTotalTimeWithout[4];
-    float noneGraphTotalTimeWith[4];
-    float GraphTotalTimeWith[4];
-    float DiffTotalWithout[4];
-    float DiffPerStepWithout[4];
-    float DiffPercentWithout[4];
-    float DiffTotalWith[4];
-    float DiffPerStepWith[4];
-    float DiffPercentWith[4];
-    float ChronoNoneGraphTotalTimeWithout[4];
-    float ChronoGraphTotalTimeWithout[4];
-    float ChronoNoneGraphTotalLaunchTimeWithout[4];
-    float ChronoGraphTotalLaunchTimeWithout[4];
-    float ChronoNoneGraphTotalTimeWith[4];
-    float ChronoGraphTotalTimeWith[4];
-    float ChronoNoneGraphTotalLaunchTimeWith[4];
-    float ChronoGraphTotalLaunchTimeWith[4];
-    float ChronoDiffTotalTimeWithout[4];
-    float ChronoDiffPerStepWithout[4];
-    float ChronoDiffPercentWithout[4];
-    float ChronoDiffTotalTimeWith[4];
-    float ChronoDiffPerStepWith[4];
-    float ChronoDiffPercentWith[4];
-    float ChronoDiffLaunchTimeWithout[4];
-    float ChronoDiffLaunchPercentWithout[4];
-    float ChronoDiffLaunchTimeWith[4];
-    float ChronoDiffLaunchPercentWith[4];
+    std::vector<float> noneGraphTotalTimeWithout;
+    std::vector<float> GraphTotalTimeWithout;
+    std::vector<float> noneGraphTotalTimeWith;
+    std::vector<float> GraphTotalTimeWith;
+    std::vector<float> DiffTotalWithout;
+    std::vector<float> DiffPerStepWithout;
+    std::vector<float> DiffPercentWithout;
+    std::vector<float> DiffTotalWith;
+    std::vector<float> DiffPerStepWith;
+    std::vector<float> DiffPercentWith;
+    std::vector<float> ChronoNoneGraphTotalTimeWithout;
+    std::vector<float> ChronoGraphTotalTimeWithout;
+    std::vector<float> ChronoNoneGraphTotalLaunchTimeWithout;
+    std::vector<float> ChronoGraphTotalLaunchTimeWithout;
+    std::vector<float> ChronoNoneGraphTotalTimeWith;
+    std::vector<float> ChronoGraphTotalTimeWith;
+    std::vector<float> ChronoNoneGraphTotalLaunchTimeWith;
+    std::vector<float> ChronoGraphTotalLaunchTimeWith;
+    std::vector<float> ChronoDiffTotalTimeWithout;
+    std::vector<float> ChronoDiffPerStepWithout;
+    std::vector<float> ChronoDiffPercentWithout;
+    std::vector<float> ChronoDiffTotalTimeWith;
+    std::vector<float> ChronoDiffPerStepWith;
+    std::vector<float> ChronoDiffPercentWith;
+    std::vector<float> ChronoDiffLaunchTimeWithout;
+    std::vector<float> ChronoDiffLaunchPercentWithout;
+    std::vector<float> ChronoDiffLaunchTimeWith;
+    std::vector<float> ChronoDiffLaunchPercentWith;
 };
+
 
 // Helper function to read a float with error checking:
 bool readFloatToken(std::istringstream &ss, float &val) {
@@ -74,7 +76,8 @@ bool readFloatToken(std::istringstream &ss, float &val) {
     return true;
 }
 
-void updateOrAppendCSV(const std::string &filename, const CSVData &newData) {
+void updateOrAppendCSV(const std::string &filename, const CSVData &newData, const int runs) {
+    const int NUM_RUNS = runs;
     std::vector<CSVData> csvData;
     std::ifstream csvFileIn(filename);
     if (csvFileIn.is_open()) {
@@ -92,88 +95,116 @@ void updateOrAppendCSV(const std::string &filename, const CSVData &newData) {
             data.SKIPBY = std::stoi(token);
 
             // Read all arrays of 4 values:
-            for (int i = 0; i < 4; i++) {
+            data.noneGraphTotalTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.noneGraphTotalTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.GraphTotalTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.GraphTotalTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.noneGraphTotalTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.noneGraphTotalTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.GraphTotalTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.GraphTotalTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffTotalWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffTotalWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffPerStepWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffPerStepWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffPercentWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffPercentWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffTotalWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffTotalWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffPerStepWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffPerStepWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffPercentWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.DiffPercentWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.DiffPercentWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoNoneGraphTotalTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoGraphTotalTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoGraphTotalTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoNoneGraphTotalLaunchTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoNoneGraphTotalLaunchTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoGraphTotalLaunchTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoGraphTotalLaunchTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoNoneGraphTotalTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoNoneGraphTotalTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoGraphTotalTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoGraphTotalTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoNoneGraphTotalLaunchTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoNoneGraphTotalLaunchTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoGraphTotalLaunchTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoGraphTotalLaunchTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffTotalTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffTotalTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffPerStepWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffPerStepWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffPercentWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffPercentWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffTotalTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffTotalTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffPerStepWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffPerStepWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffPercentWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffPercentWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffLaunchTimeWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffLaunchTimeWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffLaunchPercentWithout.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffLaunchPercentWithout[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffLaunchTimeWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffLaunchTimeWith[i])) break;
             }
-            for (int i = 0; i < 4; i++) {
+            data.ChronoDiffLaunchPercentWith.resize(NUM_RUNS);
+            for (int i = 0; i < NUM_RUNS; i++) {
                 if(!readFloatToken(ss, data.ChronoDiffLaunchPercentWith[i])) break;
             }
 
@@ -181,7 +212,7 @@ void updateOrAppendCSV(const std::string &filename, const CSVData &newData) {
         }
         csvFileIn.close();
     }
-
+    std::cout << "Passed fetching stage" << '\n';
     // Update or append
     bool updated = false;
     for (auto &entry : csvData) {
@@ -209,7 +240,7 @@ void updateOrAppendCSV(const std::string &filename, const CSVData &newData) {
 
             // For each metric, add the four columns with suffixes 1..4
             auto writeCols = [&](const std::string &baseName) {
-                for (int i = 1; i <= 4; i++) {
+                for (int i = 1; i <= NUM_RUNS; i++) {
                     tempFile << baseName << i << ",";
                 }
             };
@@ -250,8 +281,19 @@ void updateOrAppendCSV(const std::string &filename, const CSVData &newData) {
 
         for (const auto &entry : csvData) {
             tempFile << entry.NSTEP << "," << entry.SKIPBY << ",";
-            auto writeVals = [&](const float arr[4]) {
-                for (int i = 0; i < 4; i++) {
+            // auto writeVals = [&](const float arr[4]) {
+            //     for (int i = 0; i < 4; i++) {
+            //         tempFile << arr[i] << ",";
+            //     }
+            // };
+            auto writeVals = [&](const std::vector<float>& arr) {
+                if (arr.size() < NUM_RUNS) {
+                    std::cerr << "csvData(entry) size is less than NUM_RUNS!" << '\n';
+                } else if (arr.size() > NUM_RUNS) {
+                    std::cerr << "csvData(entry) size is greater than NUM_RUNS!" << '\n';
+                }
+
+                for (int i = 0; i < arr.size(); i++) {
                     tempFile << arr[i] << ",";
                 }
             };
@@ -749,6 +791,7 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 
                 }
             }
+            
         }
     }
 
@@ -810,43 +853,42 @@ void runWithGraph(std::vector<float>& totalTimeWithArr, std::vector<float>& tota
 int main(int argc, char* argv[]) {
     const int NSTEP = (argc > 1) ? atoi(argv[1]) : DEFAULT_NSTEP;
     const int SKIPBY = (argc > 2) ? atoi(argv[2]) : DEFAULT_SKIPBY;
+    const int NUM_RUNS = (argc > 3) ? std::atoi(argv[3]) : 4;
 
     std::cout << "==============COMPLEX 3 DIFFERENT KERNELS TEST==============" << std::endl;
     std::vector<int> nsteps = generateSequence(NSTEP);
-    const int NUM_RUNS = 4;
+    // const int NUM_RUNS = 4;
     std::vector<CSVData> newDatas(nsteps.size());
     for (auto &newData : newDatas) {
-        for (int r = 0; r < NUM_RUNS; r++) {
-            // Initialize arrays to some default (e.g., 0) for safety
-            newData.noneGraphTotalTimeWithout[r] = 0;
-            newData.GraphTotalTimeWithout[r] = 0;
-            newData.noneGraphTotalTimeWith[r] = 0;
-            newData.GraphTotalTimeWith[r] = 0;
-            newData.DiffTotalWithout[r] = 0;
-            newData.DiffPerStepWithout[r] = 0;
-            newData.DiffPercentWithout[r] = 0;
-            newData.DiffTotalWith[r] = 0;
-            newData.DiffPerStepWith[r] = 0;
-            newData.DiffPercentWith[r] = 0;
-            newData.ChronoNoneGraphTotalTimeWithout[r] = 0;
-            newData.ChronoGraphTotalTimeWithout[r] = 0;
-            newData.ChronoNoneGraphTotalLaunchTimeWithout[r] = 0;
-            newData.ChronoGraphTotalLaunchTimeWithout[r] = 0;
-            newData.ChronoNoneGraphTotalTimeWith[r] = 0;
-            newData.ChronoGraphTotalTimeWith[r] = 0;
-            newData.ChronoNoneGraphTotalLaunchTimeWith[r] = 0;
-            newData.ChronoGraphTotalLaunchTimeWith[r] = 0;
-            newData.ChronoDiffTotalTimeWithout[r] = 0;
-            newData.ChronoDiffPerStepWithout[r] = 0;
-            newData.ChronoDiffPercentWithout[r] = 0;
-            newData.ChronoDiffTotalTimeWith[r] = 0;
-            newData.ChronoDiffPerStepWith[r] = 0;
-            newData.ChronoDiffPercentWith[r] = 0;
-            newData.ChronoDiffLaunchTimeWithout[r] = 0;
-            newData.ChronoDiffLaunchPercentWithout[r] = 0;
-            newData.ChronoDiffLaunchTimeWith[r] = 0;
-            newData.ChronoDiffLaunchPercentWith[r] = 0;
-        }
+        // Resize each vector to hold 'NUM_RUNS' elements
+        newData.noneGraphTotalTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.GraphTotalTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.noneGraphTotalTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.GraphTotalTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.DiffTotalWithout.resize(NUM_RUNS, 0.0f);
+        newData.DiffPerStepWithout.resize(NUM_RUNS, 0.0f);
+        newData.DiffPercentWithout.resize(NUM_RUNS, 0.0f);
+        newData.DiffTotalWith.resize(NUM_RUNS, 0.0f);
+        newData.DiffPerStepWith.resize(NUM_RUNS, 0.0f);
+        newData.DiffPercentWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoNoneGraphTotalTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoGraphTotalTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoNoneGraphTotalLaunchTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoGraphTotalLaunchTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoNoneGraphTotalTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoGraphTotalTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoNoneGraphTotalLaunchTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoGraphTotalLaunchTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffTotalTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffPerStepWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffPercentWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffTotalTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffPerStepWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffPercentWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffLaunchTimeWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffLaunchPercentWithout.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffLaunchTimeWith.resize(NUM_RUNS, 0.0f);
+        newData.ChronoDiffLaunchPercentWith.resize(NUM_RUNS, 0.0f);
     }
 
     for (int r = 0; r < NUM_RUNS; r++) {
@@ -949,10 +991,10 @@ int main(int argc, char* argv[]) {
             // updateOrAppendCSV(FILENAME, newData);
         }
     }
-
-    const std::string FILENAME = "complex_3_different_kernels.csv";
+    std::cout << "I am here!" << '\n';
+    const std::string FILENAME = "complex_3_different_kernels_runsarg.csv";
     for (const auto &newData : newDatas) {
-        updateOrAppendCSV(FILENAME, newData);
+        updateOrAppendCSV(FILENAME, newData, NUM_RUNS);
     }
 
     return 0;
