@@ -64,7 +64,7 @@ This repository contains various CUDA Graph tests and corresponding scripts to c
 
 - The `OFFLOAD_ARCH` (e.g., `sm_75`) is set in `run_tests.sh`. Update it to match your GPU architecture if needed.
 - Ensure that your environment has the required Python packages to run the plotting scripts.
-- For more detailed control, you may run each `.cu` file separately with `nvcc` and then manually call `plot_generator.py`.
+- For more detailed control, you may run each `.cu` file separately with `nvcc` and then manually call `plot_generator.py` with the produce CSV file.
 
 ---
 

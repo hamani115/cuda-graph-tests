@@ -2,14 +2,16 @@
 
 # Set the offload architecture variable here for easy modification
 OFFLOAD_ARCH="sm_75"
+NSTEPS=10000
+SKIPBY=0
 
 echo "Compiling combined_3diffkernels_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
 nvcc -arch=${OFFLOAD_ARCH} complex-kernels-test/combined_3diffkernels_singlerun.cu -o complex-kernels-test/combined_3diffkernels_singlerun
 
 echo "Entering complex-kernels-test directory"
 cd complex-kernels-test/
-echo "Running combined_3diffkernels_singlerun with arguments 10000 0"
-./combined_3diffkernels_singlerun 10000 0
+echo "Running combined_3diffkernelss_singlerun with arguments ${NSTEPS} ${SKIPBY}"
+./combined_3diffkernels_singlerun ${NSTEPS} ${SKIPBY}
 cd ..
 
 echo "Compiling combined_diffsize_kernels_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
@@ -17,8 +19,8 @@ nvcc -arch=${OFFLOAD_ARCH} diffsize-kernels-test/combined_diffsize_kernels_singl
 
 echo "Entering diffsize-kernels-test directory"
 cd diffsize-kernels-test/
-echo "Running combined_diffsize_kernels_singlerun with arguments 10000 0"
-./combined_diffsize_kernels_singlerun 10000 0
+echo "Running combined_diffsize_kernels_singlerun with arguments ${NSTEPS} ${SKIPBY}"
+./combined_diffsize_kernels_singlerun ${NSTEPS} ${SKIPBY}
 cd ..
 
 echo "Compiling combined_multi_malloc_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
@@ -26,8 +28,8 @@ nvcc -arch=${OFFLOAD_ARCH} multi-malloc-test/combined_multi_malloc_singlerun.cu 
 
 echo "Entering multi-malloc-test directory"
 cd multi-malloc-test/
-echo "Running combined_multi_malloc_singlerun with arguments 10000 0"
-./combined_multi_malloc_singlerun 10000 0
+echo "Running combined_multi_malloc_singlerun with arguments ${NSTEPS} ${SKIPBY}"
+./combined_multi_malloc_singlerun ${NSTEPS} ${SKIPBY}
 cd ..
 
 echo "Compiling combined_multi_stream2_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
@@ -35,8 +37,8 @@ nvcc -arch=${OFFLOAD_ARCH} multi-stream-test/combined_multi_stream_singlerun.cu 
 
 echo "Entering multi-stream-test directory"
 cd multi-stream-test/
-echo "Running combined_multi_stream_singlerun with arguments 10000 0"
-./combined_multi_stream_singlerun 10000 0
+echo "Running combined_multi_stream_singlerun with arguments ${NSTEPS} ${SKIPBY}"
+./combined_multi_stream_singlerun ${NSTEPS} ${SKIPBY}
 cd ..
 
 echo "Running generate_plots.sh"
