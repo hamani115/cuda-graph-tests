@@ -4,45 +4,54 @@
 OFFLOAD_ARCH="sm_75"
 NSTEPS=10000
 SKIPBY=0
+NUM_RUNS=4
+
+# Ensure nvcc compiles both CUDA and C++ files properly
+COMPILE="nvcc -arch=${OFFLOAD_ARCH} -std=c++20"
+
+# Utility file path
+CSV_UTIL="util/csv_util.cpp"
+
+# Command
+COMMAND="${COMPILE} ${CSV_UTIL}"
 
 echo "Compiling combined_3diffkernels_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
-nvcc -arch=${OFFLOAD_ARCH} complex-kernels-test/combined_3diffkernels_singlerun.cu -o complex-kernels-test/combined_3diffkernels_singlerun
+${COMMAND} complex-kernels-test/combined_3diffkernels_singlerun.cu -o complex-kernels-test/combined_3diffkernels_singlerun
 
 echo "Entering complex-kernels-test directory"
-cd complex-kernels-test/
-echo "Running combined_3diffkernelss_singlerun with arguments ${NSTEPS} ${SKIPBY}"
-./combined_3diffkernels_singlerun ${NSTEPS} ${SKIPBY}
+cd complex-kernels-test/ || exit 1
+echo "Running combined_3diffkernels_singlerun with arguments ${NSTEPS} ${SKIPBY} ${NUM_RUNS}"
+./combined_3diffkernels_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS}
 cd ..
 
 echo "Compiling combined_diffsize_kernels_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
-nvcc -arch=${OFFLOAD_ARCH} diffsize-kernels-test/combined_diffsize_kernels_singlerun.cu -o diffsize-kernels-test/combined_diffsize_kernels_singlerun
+${COMMAND} diffsize-kernels-test/combined_diffsize_kernels_singlerun.cu -o diffsize-kernels-test/combined_diffsize_kernels_singlerun
 
 echo "Entering diffsize-kernels-test directory"
-cd diffsize-kernels-test/
-echo "Running combined_diffsize_kernels_singlerun with arguments ${NSTEPS} ${SKIPBY}"
-./combined_diffsize_kernels_singlerun ${NSTEPS} ${SKIPBY}
+cd diffsize-kernels-test/ || exit 1
+echo "Running combined_diffsize_kernels_singlerun with arguments ${NSTEPS} ${SKIPBY} ${NUM_RUNS}"
+./combined_diffsize_kernels_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS}
 cd ..
 
 echo "Compiling combined_multi_malloc_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
-nvcc -arch=${OFFLOAD_ARCH} multi-malloc-test/combined_multi_malloc_singlerun.cu -o multi-malloc-test/combined_multi_malloc_singlerun
+${COMMAND} multi-malloc-test/combined_multi_malloc_singlerun.cu -o multi-malloc-test/combined_multi_malloc_singlerun
 
 echo "Entering multi-malloc-test directory"
-cd multi-malloc-test/
-echo "Running combined_multi_malloc_singlerun with arguments ${NSTEPS} ${SKIPBY}"
-./combined_multi_malloc_singlerun ${NSTEPS} ${SKIPBY}
+cd multi-malloc-test/ || exit 1
+echo "Running combined_multi_malloc_singlerun with arguments ${NSTEPS} ${SKIPBY} ${NUM_RUNS}"
+./combined_multi_malloc_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS}
 cd ..
 
 echo "Compiling combined_multi_stream2_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
-nvcc -arch=${OFFLOAD_ARCH} multi-stream-test/combined_multi_stream_singlerun.cu -o multi-stream-test/combined_multi_stream_singlerun
+${COMMAND} multi-stream-test/combined_multi_stream_singlerun.cu -o multi-stream-test/combined_multi_stream_singlerun
 
 echo "Entering multi-stream-test directory"
-cd multi-stream-test/
-echo "Running combined_multi_stream_singlerun with arguments ${NSTEPS} ${SKIPBY}"
-./combined_multi_stream_singlerun ${NSTEPS} ${SKIPBY}
+cd multi-stream-test/ || exit 1
+echo "Running combined_multi_stream_singlerun with arguments ${NSTEPS} ${SKIPBY} ${NUM_RUNS}"
+./combined_multi_stream_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS}
 cd ..
 
-echo "Running generate_plots.sh"
-bash generate_plots.sh
+echo "Running generate_plots.sh with NUM_RUNS=$NUM_RUNS"
+bash generate_plots.sh "${NUM_RUNS}"
 
 echo "All steps completed successfully."
-

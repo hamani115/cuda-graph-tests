@@ -20,6 +20,7 @@ OUTPUT_DIR="./output_plots"
 PYTHON_SCRIPT="./plot_generator.py"
 # PYTHON_SCRIPT="./plot_combined_generator.py"
 
+NUM_RUNS=$1
 
 # Check if the Python script exists
 if [[ ! -f "$PYTHON_SCRIPT" ]]; then
@@ -43,7 +44,7 @@ for FILE in "${CSV_FILES[@]}"; do
 done
 
 # Add the output directory argument
-COMMAND="$COMMAND -o $OUTPUT_DIR"
+COMMAND="$COMMAND --num_runs $NUM_RUNS -o $OUTPUT_DIR"
 
 # Print the command for debugging purposes
 echo "Executing: $COMMAND"

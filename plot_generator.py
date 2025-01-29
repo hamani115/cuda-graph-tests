@@ -19,7 +19,7 @@ def transform_string(input_str, split_char, join_char):
     return result
 
 # PLOTS EXTRAS
-def generate_cputotaltime_plot(csv_path, output_dir):
+def generate_cputotaltime_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -31,11 +31,16 @@ def generate_cputotaltime_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
-                                            'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']].mean(axis=1).values
-        data_with = df[['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
-                                         'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']].mean(axis=1).values
+        cols_without = [f"ChronoNoneGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+        cols_with    = [f"ChronoGraphTotalTimeWithout{i}"     for i in range(1, num_runs+1)]
+        
+        data_without = df[cols_without].mean(axis=1).values
+        data_with = df[cols_with].mean(axis=1).values
+        
+        # data_without = df[['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
+        #                                     'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']].mean(axis=1).values
+        # data_with = df[['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
+        #                                  'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']].mean(axis=1).values
 
         # Plotting
         plt.figure(figsize=(8, 6))
@@ -107,7 +112,7 @@ def generate_cputotaltime_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_launchtotaltime_plot(csv_path, output_dir):
+def generate_launchtotaltime_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -120,10 +125,11 @@ def generate_launchtotaltime_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
-                           'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']].mean(axis=1).values
-        data_with = df[['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
-                        'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout3']].mean(axis=1).values
+        cols_without = [f"ChronoNoneGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+        cols_with = [f"ChronoGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+        
+        data_without = df[cols_without].mean(axis=1).values
+        data_with = df[cols_with].mean(axis=1).values
 
         # Plotting
         plt.figure(figsize=(8, 6))
@@ -195,7 +201,7 @@ def generate_launchtotaltime_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_launchdifftotal_plot(csv_path, output_dir):
+def generate_launchdifftotal_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -208,10 +214,11 @@ def generate_launchdifftotal_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_without = df[['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
-                          'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']].mean(axis=1).values
-        data_with = df[['ChronoDiffLaunchTimeWith1','ChronoDiffLaunchTimeWith2',
-                        'ChronoDiffLaunchTimeWith3','ChronoDiffLaunchTimeWith4']].mean(axis=1).values
+        cols_without = [f"ChronoDiffLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+        cols_with = [f"ChronoDiffLaunchTimeWith{i}" for i in range(1, num_runs+1)]
+        
+        data_without = df[cols_without].mean(axis=1).values
+        data_with = df[cols_with].mean(axis=1).values
 
         # Plotting
         plt.figure(figsize=(8, 6))
@@ -284,7 +291,7 @@ def generate_launchdifftotal_plot(csv_path, output_dir):
 
 # PLOTS NEEDED
 # GPU Timer
-def generate_gputimeperstep_plot(csv_path, output_dir):
+def generate_gputimeperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -297,16 +304,19 @@ def generate_gputimeperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # Average total times across runs for 'Without Graph'
-        data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2', 
-                                 'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
+        # data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2', 
+        #                          'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
+        data_cols_without = [f"noneGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+        
         mean_without = df[data_cols_without].mean(axis=1).values
         std_without = df[data_cols_without].std(axis=1).values
         time_perstep_without = mean_without / nsteps
         time_perstep_std_without = std_without / nsteps
 
         # Average total times across runs for 'With Graph'
-        data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2', 
-                        'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
+        # data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2', 
+        #                 'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
+        data_cols_with = [f"GraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
         
         mean_with = df[data_cols_with].mean(axis=1).values
         std_with = df[data_cols_with].std(axis=1).values
@@ -407,7 +417,7 @@ def generate_gputimeperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_gpudiffperstep_plot(csv_path, output_dir):
+def generate_gpudiffperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -420,8 +430,9 @@ def generate_gpudiffperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_cols_without = ['DiffPerStepWithout1','DiffPerStepWithout2',
-                           'DiffPerStepWithout3','DiffPerStepWithout4']
+        # data_cols_without = ['DiffPerStepWithout1','DiffPerStepWithout2',
+        #                    'DiffPerStepWithout3','DiffPerStepWithout4']
+        data_cols_without = [f"DiffPerStepWithout{i}" for i in range(1, num_runs+1)]
         # data_with = df[['DiffPerStepWith1','DiffPerStepWith2',
         #                 'DiffPerStepWith3','DiffPerStepWith4']].mean(axis=1).values
         
@@ -507,7 +518,7 @@ def generate_gpudiffperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_gpudiffpercent_plot(csv_path, output_dir):
+def generate_gpudiffpercent_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -520,8 +531,9 @@ def generate_gpudiffpercent_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2', 
-                                            'DiffPercentWithout3', 'DiffPercentWithout4']
+        # data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2', 
+        #                                     'DiffPercentWithout3', 'DiffPercentWithout4']
+        data_cols_without = [f"DiffPercentWithout{i}" for i in range(1, num_runs+1)]
         # data_with = df[['DiffPercentWith1', 'DiffPercentWith2', 
         #                                  'DiffPercentWith3', 'DiffPercentWith4']].mean(axis=1).values
 
@@ -609,7 +621,7 @@ def generate_gpudiffpercent_plot(csv_path, output_dir):
         print(f"Failed to process {csv_path}: {e}")
 
 #CPU Timer
-def generate_cputimeperstep_plot(csv_path, output_dir):
+def generate_cputimeperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -621,8 +633,9 @@ def generate_cputimeperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
-                                            'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
+        # data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2', 
+        #                                     'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
+        data_cols_without = [f"ChronoNoneGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
         # time_perstep_without = data_without / nsteps
         mean_without = df[data_cols_without].mean(axis=1).values
         std_without = df[data_cols_without].std(axis=1).values
@@ -630,8 +643,9 @@ def generate_cputimeperstep_plot(csv_path, output_dir):
         time_perstep_std_without = std_without / nsteps
         
         
-        data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
-                                         'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
+        # data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2', 
+        #                                  'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
+        data_cols_with = [f"ChronoGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
         # time_perstep_with = data_with / nsteps
         mean_with = df[data_cols_with].mean(axis=1).values
         std_with = df[data_cols_with].std(axis=1).values
@@ -731,7 +745,7 @@ def generate_cputimeperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_cpudiffperstep_plot(csv_path, output_dir):
+def generate_cpudiffperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -743,8 +757,9 @@ def generate_cpudiffperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
-                           'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
+        # data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
+        #                    'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
+        data_cols_without = [f"ChronoDiffPerStepWithout{i}" for i in range(1, num_runs+1)]
         # data_with = df[['ChronoDiffPerStepWith1','ChronoDiffPerStepWith2',
         #                 'ChronoDiffPerStepWith3','ChronoDiffPerStepWith4']].mean(axis=1).values
 
@@ -830,7 +845,7 @@ def generate_cpudiffperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_cpudiffpercent_plot(csv_path, output_dir):
+def generate_cpudiffpercent_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -842,8 +857,9 @@ def generate_cpudiffpercent_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
-                           'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
+        # data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
+        #                    'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
+        data_cols_without = [f"ChronoDiffPercentWithout{i}" for i in range(1, num_runs+1)]
         # data_with = df[['ChronoDiffPercentWith1','ChronoDiffPercentWith2',
         #                 'ChronoDiffPercentWith3','ChronoDiffPercentWith4']].mean(axis=1).values
         mean_without = df[data_cols_without].mean(axis=1).values
@@ -931,7 +947,7 @@ def generate_cpudiffpercent_plot(csv_path, output_dir):
 
 
 #LAUNCH Timer
-def generate_launchtimeperstep_plot(csv_path, output_dir):
+def generate_launchtimeperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -944,16 +960,18 @@ def generate_launchtimeperstep_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         
-        data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
-                          'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
+        # data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
+        #                   'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
+        data_cols_without = [f"ChronoNoneGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
         # time_perstep_without = data_without / nsteps
         mean_without = df[data_cols_without].mean(axis=1).values
         std_without = df[data_cols_without].std(axis=1).values
         time_perstep_without = (mean_without / nsteps) * 1000
         time_perstep_std_without = (std_without / nsteps) * 1000
         
-        data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
-                        'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
+        # data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
+        #                 'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
+        data_cols_with = [f"ChronoGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
         # time_perstep_with = data_with / nsteps
         mean_with = df[data_cols_with].mean(axis=1).values
         std_with = df[data_cols_with].std(axis=1).values
@@ -1050,7 +1068,7 @@ def generate_launchtimeperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_launchdiffperstep_plot(csv_path, output_dir):
+def generate_launchdiffperstep_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -1062,8 +1080,9 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
         nsteps = df['NSTEP'].values
 
         ########################## Percentage Differences ##########################
-        data_cols_without = ['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
-                          'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']
+        # data_cols_without = ['ChronoDiffLaunchTimeWithout1','ChronoDiffLaunchTimeWithout2',
+        #                   'ChronoDiffLaunchTimeWithout3','ChronoDiffLaunchTimeWithout4']
+        data_cols_without = [f"ChronoDiffLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
         # time_perstep_without = data_without / nsteps
         mean_without = df[data_cols_without].mean(axis=1).values
         std_without = df[data_cols_without].std(axis=1).values
@@ -1154,7 +1173,7 @@ def generate_launchdiffperstep_plot(csv_path, output_dir):
     except Exception as e:
         print(f"Failed to process {csv_path}: {e}")
 
-def generate_launchdiffpercent_plot(csv_path, output_dir):
+def generate_launchdiffpercent_plot(csv_path, output_dir, num_runs):
     try:
         # Read the CSV file
         df = pd.read_csv(csv_path)
@@ -1167,8 +1186,9 @@ def generate_launchdiffpercent_plot(csv_path, output_dir):
 
         ########################## Percentage Differences ##########################
         # You can choose to plot either 'DiffPercentWithout' or 'DiffPercentWith'
-        data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
-                           'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
+        # data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
+        #                    'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
+        data_cols_without = [f"ChronoDiffLaunchPercentWithout{i}" for i in range(1, num_runs+1)]
         # data_with = df[['ChronoDiffLaunchPercentWith1','ChronoDiffLaunchPercentWith2',
         #                 'ChronoDiffLaunchPercentWith3','ChronoDiffLaunchPercentWith4']].mean(axis=1).values
         mean_without = df[data_cols_without].mean(axis=1).values
@@ -1274,6 +1294,12 @@ def main():
         default='plots',
         help='Directory to save the output plots. Defaults to "./plots".'
     )
+    parser.add_argument(
+        '--num_runs',
+        type=int,
+        default=4,
+        help='Number of runs for each measurement column (default: 4).'
+    )
 
     args = parser.parse_args()
 
@@ -1287,17 +1313,17 @@ def main():
             print(f"File not found: {csv_path}")
             continue
         #GPU
-        generate_gputimeperstep_plot(csv_path, output_dir)
-        generate_gpudiffperstep_plot(csv_path, output_dir)
-        generate_gpudiffpercent_plot(csv_path, output_dir)
+        generate_gputimeperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_gpudiffperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_gpudiffpercent_plot(csv_path, output_dir, args.num_runs)
         #CPU
-        generate_cputimeperstep_plot(csv_path, output_dir)
-        generate_cpudiffperstep_plot(csv_path, output_dir)
-        generate_cpudiffpercent_plot(csv_path, output_dir)
+        generate_cputimeperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_cpudiffperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_cpudiffpercent_plot(csv_path, output_dir, args.num_runs)
         #LAUNCH
-        generate_launchtimeperstep_plot(csv_path, output_dir)
-        generate_launchdiffperstep_plot(csv_path, output_dir)
-        generate_launchdiffpercent_plot(csv_path, output_dir)
+        generate_launchtimeperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_launchdiffperstep_plot(csv_path, output_dir, args.num_runs)
+        generate_launchdiffpercent_plot(csv_path, output_dir, args.num_runs)
         
         #EXTRAS   
         # generate_cputotaltime_plot(csv_path, output_dir)
