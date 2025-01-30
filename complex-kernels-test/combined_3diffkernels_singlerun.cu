@@ -678,7 +678,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    const std::string FILENAME = "complex_different_sizes_kernels_new_T4.csv";
+    const std::string FILENAME = "complex_different_sizes_kernels.csv";
     // for (const auto &newData : newDatas) {
     //     updateOrAppendCSV(FILENAME, newData);
     // }
