@@ -10,10 +10,12 @@ plot_h = 6
 font_size = 10
 
 GPU_COLORS = {
-    "Nvidia T4": "red",
-    "Nvidia L4": "darkorange",
-    "AMD Radeon Pro W7800": "blue",
-    # Add more mappings if you have more GPUs
+    # "Nvidia T4": "red",
+    # "Nvidia L4": "darkorange",
+    # "AMD Radeon Pro W7800": "blue",
+    "T4": "red",
+    "L4": "darkorange",
+    "AMD": "blue",
 }
 
 def transform_string(input_str, split_char, join_char):
@@ -107,7 +109,7 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
                 linestyle='-',
                 capsize=3,
                 color=color,
-                label=f"{gpu_label} - With Graph+"
+                label=f"{gpu_label} - With Graph*"
             )
             
             
@@ -124,7 +126,7 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
                              ha="right", va="top")
             else:
                 for x, y in zip(nsteps, time_perstep_without):
-                    plt.text(x, y+0.00, f"{y:.3f}", fontsize=9, 
+                    plt.text(x, y+0.00, f"{y:.3f}*", fontsize=9, 
                             color=line_obj1[0].get_color(),  # use the line color
                             ha="left", va="bottom")
 
@@ -337,21 +339,21 @@ def generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
                 linestyle='-',
                 capsize=3,
                 color=color,
-                label=f"{gpu_label} - With Graph+"
+                label=f"{gpu_label} - With Graph*"
             )
             
             # line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
             #          color=color,
             #          label=f"{gpu_label} - Without Graph")
             for x, y in zip(nsteps, time_perstep_without):
-                plt.text(x, y+0.01, f"{y:.3f}", fontsize=9, 
+                plt.text(x, y+0.01, f"{y:.2f}", fontsize=9, 
                          color=line_obj1[0].get_color(),  # use the line color 
                          ha="left", va="bottom")
             # line_obj2, = plt.plot(nsteps, time_perstep_with, marker='o', linestyle='-',
             #          color=color,
             #          label=f"{gpu_label} - With Graph+")
             for x, y in zip(nsteps, time_perstep_with):
-                plt.text(x, y-0.01, f"{y:.3f}+", fontsize=9, 
+                plt.text(x, y-0.01, f"{y:.2f}*", fontsize=9, 
                          color=line_obj2[0].get_color(),  # use the line color
                          ha="right", va="top")
 
@@ -522,7 +524,7 @@ def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir):
                 linestyle='-',
                 capsize=3,
                 color=color,
-                label=f"{gpu_label} - With Graph+"
+                label=f"{gpu_label} - With Graph*"
             )
             
             # line_obj1, = plt.plot(nsteps, time_perstep_without, marker='o', linestyle='--',
@@ -536,7 +538,7 @@ def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             #          color=color,
             #          label=f"{gpu_label} - With Graph+")
             for x, y in zip(nsteps, time_perstep_with):
-                plt.text(x, y-0.0000, f"{y:.1f}+", fontsize=9, 
+                plt.text(x, y-0.0000, f"{y:.1f}*", fontsize=9, 
                          color=line_obj2[0].get_color(),  # use the line color 
                          ha="left", va="top")
         except Exception as e:
