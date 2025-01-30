@@ -550,8 +550,24 @@ int main(int argc, char* argv[]) {
     const int NSTEP = (argc > 1) ? atoi(argv[1]) : DEFAULT_NSTEP;
     const int SKIPBY = (argc > 2) ? atoi(argv[2]) : DEFAULT_SKIPBY;
     const int NUM_RUNS = (argc > 3) ? std::atoi(argv[3]) : 4;
+    std::string FILENAME;
+    if (argc > 4) {
+        FILENAME = argv[4];
+        // Automatically append ".csv" if user didn't include it
+        if (FILENAME.size() < 4 || FILENAME.compare(FILENAME.size() - 4, 4, ".csv") != 0) {
+            FILENAME += ".csv";
+        }
+    } else {
+        FILENAME = "complex_multi_malloc.csv";
+    }
 
     std::cout << "==============COMPLEX DIFFERENT SIZES KERNELS TEST==============" << std::endl;
+    
+    std::cout << "NSTEP    = " << NSTEP    << "\n";
+    std::cout << "SKIPBY   = " << SKIPBY   << "\n";
+    std::cout << "NUM_RUNS = " << NUM_RUNS << "\n";
+    std::cout << "FILENAME = " << FILENAME << "\n\n";
+    
     std::vector<int> nsteps = generateSequence(NSTEP);
     std::vector<CSVData> newDatas(nsteps.size());
     for (auto &newData : newDatas) {
@@ -675,7 +691,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    const std::string FILENAME = "complex_multi_malloc.csv";
     // for (const auto &newData : newDatas) {
     //     updateOrAppendCSV(FILENAME, newData);
     // }
