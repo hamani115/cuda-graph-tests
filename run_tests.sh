@@ -48,7 +48,7 @@ echo "Running combined_multi_malloc_singlerun with arguments ${NSTEPS} ${SKIPBY}
 ./combined_multi_malloc_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS} ${Test3_Filename}
 cd ..
 
-echo "Compiling combined_multi_stream2_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
+echo "Compiling combined_multi_stream_singlerun.cu with OFFLOAD_ARCH=${OFFLOAD_ARCH}"
 ${COMMAND} multi-stream-test/combined_multi_stream_singlerun.cu -o multi-stream-test/combined_multi_stream_singlerun
 
 echo "Entering multi-stream-test directory"
