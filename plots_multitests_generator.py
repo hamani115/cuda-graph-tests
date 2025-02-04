@@ -10,12 +10,12 @@ plot_h = 6
 font_size = 10
 
 GPU_COLORS = {
-    # "Nvidia T4": "red",
-    # "Nvidia L4": "darkorange",
-    # "AMD Radeon Pro W7800": "blue",
-    "T4": "red",
-    "L4": "darkorange",
-    "AMD": "blue",
+    "2Nvidia-T4": "red",
+    "2Nvidia-L4": "darkorange",
+    "2AMD-Radeon-Pro-W7800": "blue",
+    # "T4": "red",
+    # "L4": "darkorange",
+    # "AMD": "blue",
 }
 
 def transform_string(input_str, split_char, join_char):
@@ -57,7 +57,7 @@ def parse_filename(csv_path):
 ###############################################################################
 #              2) COMBINED PLOT FUNCTIONS: ONE PLOT WITH MULTIPLE LINES       #
 ###############################################################################
-def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     """
     For the given test_name, we have a list of (csv_path, gpu_label).
     We'll create one figure, and plot one line per CSV (per GPU).
@@ -70,9 +70,10 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             nsteps = df['NSTEP'].values
 
             # Time WITHOUT Graph
-            data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2',
-                               'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
-            
+            # data_cols_without = ['noneGraphTotalTimeWithout1', 'noneGraphTotalTimeWithout2',
+            #                    'noneGraphTotalTimeWithout3', 'noneGraphTotalTimeWithout4']
+            data_cols_without = [f"noneGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             time_perstep_without = mean_without / nsteps
@@ -80,9 +81,10 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
             
 
             # Time WITH Graph
-            data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2',
-                            'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
-            
+            # data_cols_with = ['GraphTotalTimeWithout1', 'GraphTotalTimeWithout2',
+            #                 'GraphTotalTimeWithout3', 'GraphTotalTimeWithout4']
+            data_cols_with = [f"GraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_with = df[data_cols_with].mean(axis=1).values
             std_with = df[data_cols_with].std(axis=1).values
             time_perstep_with = mean_with / nsteps
@@ -165,8 +167,7 @@ def generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved GPU time/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-
-def generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     """
     Same pattern for GPU Diff/Step. One line per GPU label.
     """
@@ -177,9 +178,10 @@ def generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['DiffPerStepWithout1', 'DiffPerStepWithout2',
-                               'DiffPerStepWithout3', 'DiffPerStepWithout4']
-            
+            # data_cols_without = ['DiffPerStepWithout1', 'DiffPerStepWithout2',
+            #                    'DiffPerStepWithout3', 'DiffPerStepWithout4']
+            data_cols_without = [f"DiffPerStepWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
                         
@@ -231,7 +233,7 @@ def generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved GPU diff/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-def generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
+def generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     """
     GPU difference percent, one line per GPU label.
     """
@@ -242,9 +244,10 @@ def generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2',
-                               'DiffPercentWithout3', 'DiffPercentWithout4']
-            
+            # data_cols_without = ['DiffPercentWithout1', 'DiffPercentWithout2',
+            #                    'DiffPercentWithout3', 'DiffPercentWithout4']
+            data_cols_without = [f"DiffPercentWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             
@@ -295,24 +298,26 @@ def generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
 ###############################################################################
 #                 (Similarly) for CPU time, Launch time, etc.                 #
 ###############################################################################
-def generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2',
-                               'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
-            
+            # data_cols_without = ['ChronoNoneGraphTotalTimeWithout1', 'ChronoNoneGraphTotalTimeWithout2',
+            #                    'ChronoNoneGraphTotalTimeWithout3', 'ChronoNoneGraphTotalTimeWithout4']
+            data_cols_without = [f"ChronoNoneGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             time_perstep_without = mean_without / nsteps
             time_perstep_std_without = std_without / nsteps
 
-            data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2',
-                            'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
-            
+            # data_cols_with = ['ChronoGraphTotalTimeWithout1', 'ChronoGraphTotalTimeWithout2',
+            #                 'ChronoGraphTotalTimeWithout3', 'ChronoGraphTotalTimeWithout4']
+            data_cols_with = [f"ChronoGraphTotalTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_with = df[data_cols_with].mean(axis=1).values
             std_with = df[data_cols_with].std(axis=1).values
             time_perstep_with = mean_with / nsteps
@@ -374,17 +379,17 @@ def generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved CPU time/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-
-def generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
-                               'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
-            
+            # data_cols_without = ['ChronoDiffPerStepWithout1','ChronoDiffPerStepWithout2',
+            #                    'ChronoDiffPerStepWithout3','ChronoDiffPerStepWithout4']
+            data_cols_without = [f"ChronoDiffPerStepWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             
@@ -426,16 +431,16 @@ def generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved CPU diff/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-
-def generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
+def generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
-            data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
-                               'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
-            
+            # data_cols_without = ['ChronoDiffPercentWithout1','ChronoDiffPercentWithout2',
+            #                    'ChronoDiffPercentWithout3','ChronoDiffPercentWithout4']
+            data_cols_without = [f"ChronoDiffPercentWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             
@@ -480,24 +485,26 @@ def generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir):
 ###############################################################################
 #     (Similarly) for Launch time/time_perstep_withstep, Launch diff, etc.    #
 ###############################################################################
-def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
-                               'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
-            
+            # data_cols_without = ['ChronoNoneGraphTotalLaunchTimeWithout1','ChronoNoneGraphTotalLaunchTimeWithout2',
+            #                    'ChronoNoneGraphTotalLaunchTimeWithout3','ChronoNoneGraphTotalLaunchTimeWithout4']
+            data_cols_without = [f"ChronoNoneGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
             time_perstep_without = (mean_without / nsteps) * 1000
             time_perstep_std_without = (std_without / nsteps) * 1000
 
-            data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
-                            'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
-            
+            # data_cols_with = ['ChronoGraphTotalLaunchTimeWithout1','ChronoGraphTotalLaunchTimeWithout2',
+            #                 'ChronoGraphTotalLaunchTimeWithout3','ChronoGraphTotalLaunchTimeWithout4']
+            data_cols_with = [f"ChronoGraphTotalLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+
             mean_with = df[data_cols_with].mean(axis=1).values
             std_with = df[data_cols_with].std(axis=1).values
             time_perstep_with = (mean_with / nsteps) * 1000
@@ -559,20 +566,21 @@ def generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved Launch time/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-
-def generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir):
+def generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = [
-                'ChronoDiffLaunchTimeWithout1',
-                'ChronoDiffLaunchTimeWithout2',
-                'ChronoDiffLaunchTimeWithout3',
-                'ChronoDiffLaunchTimeWithout4'
-            ]
+            # data_cols_without = [
+            #     'ChronoDiffLaunchTimeWithout1',
+            #     'ChronoDiffLaunchTimeWithout2',
+            #     'ChronoDiffLaunchTimeWithout3',
+            #     'ChronoDiffLaunchTimeWithout4'
+            # ]
+            data_cols_without = [f"ChronoDiffLaunchTimeWithout{i}" for i in range(1, num_runs+1)]
+
             
             mean_without = (df[data_cols_without].mean(axis=1).values)
             std_without = (df[data_cols_without].std(axis=1).values)
@@ -617,16 +625,16 @@ def generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir):
     print(f"Saved Launch diff/step plot for test [{test_name}] to {output_path}")
     plt.close()
 
-
-def generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir):
+def generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir, num_runs):
     plt.figure(figsize=(plot_w, plot_h))
     for csv_path, gpu_label in group_csvs:
         try:
             df = pd.read_csv(csv_path).sort_values('NSTEP')
             nsteps = df['NSTEP'].values
 
-            data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
-                               'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
+            # data_cols_without = ['ChronoDiffLaunchPercentWithout1','ChronoDiffLaunchPercentWithout2',
+            #                    'ChronoDiffLaunchPercentWithout3','ChronoDiffLaunchPercentWithout4']
+            data_cols_without = [f"ChronoDiffLaunchPercentWithout{i}" for i in range(1, num_runs+1)]
 
             mean_without = df[data_cols_without].mean(axis=1).values
             std_without = df[data_cols_without].std(axis=1).values
@@ -688,6 +696,12 @@ def main():
         default='plots',
         help='Directory to save the output plots. Defaults to "./plots".'
     )
+    parser.add_argument(
+        '--num_runs',
+        type=int,
+        default=4,
+        help='Number of runs for each measurement column (default: 4).'
+    )
 
     args = parser.parse_args()
 
@@ -711,17 +725,17 @@ def main():
     #    Each plot function will create a single figure with one line per GPU label.
     for test_name, group_csvs in test_groups.items():
         # GPU
-        generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir)
+        generate_gputimeperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_gpudiffperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_gpudiffpercent_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
         # CPU
-        generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir)
+        generate_cputimeperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_cpudiffperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_cpudiffpercent_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
         # LAUNCH
-        generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir)
-        generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir)
+        generate_launchtimeperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_launchdiffperstep_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
+        generate_launchdiffpercent_plot_for_test(test_name, group_csvs, output_dir, args.num_runs)
 
         # Extras:
         # generate_cputotaltime_plot_for_test(...)
