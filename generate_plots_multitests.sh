@@ -23,6 +23,14 @@ CSV_FILES=(
 OUTPUT_DIR="./output_plots_multitests"
 PYTHON_SCRIPT="./plots_multitests_generator.py"
 
+# Check if NUM_RUNS is provided, otherwise default to 4
+if [[ -z "$1" ]]; then
+    NUM_RUNS=4
+    echo "No number of runs provided. Defaulting to NUM_RUNS = 4."
+else
+    NUM_RUNS=$1
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 # Build a command array
@@ -38,7 +46,7 @@ for FILE in "${CSV_FILES[@]}"; do
 done
 
 # Append the output directory arguments
-COMMAND+=("-o" "$OUTPUT_DIR")
+COMMAND+=("--num_runs" "$NUM_RUNS" "-o" "$OUTPUT_DIR")
 
 # Show the exact command that will be executed
 echo "Executing: ${COMMAND[@]}"
