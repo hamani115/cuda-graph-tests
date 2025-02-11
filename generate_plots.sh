@@ -20,7 +20,14 @@ OUTPUT_DIR="./output_plots"
 PYTHON_SCRIPT="./plot_generator.py"
 # PYTHON_SCRIPT="./plot_combined_generator.py"
 
-NUM_RUNS=$1
+# Check if NUM_RUNS is provided, otherwise default to 4
+if [[ -z "$1" ]]; then
+    NUM_RUNS=4
+    echo "No number of runs provided. Defaulting to NUM_RUNS = 4."
+else
+    NUM_RUNS=$1
+fi
+
 
 # Check if the Python script exists
 if [[ ! -f "$PYTHON_SCRIPT" ]]; then
