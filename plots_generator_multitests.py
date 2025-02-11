@@ -10,12 +10,12 @@ plot_h = 6
 font_size = 10
 
 GPU_COLORS = {
-    "2Nvidia-T4": "red",
-    "2Nvidia-L4": "darkorange",
-    "2AMD-Radeon-Pro-W7800": "blue",
-    # "T4": "red",
-    # "L4": "darkorange",
-    # "AMD": "blue",
+    # "Nvidia-T4": "red",
+    # "Nvidia-L4": "darkorange",
+    # "AMD-Radeon-Pro-W7800": "blue",
+    "T4": "red",
+    "L4": "darkorange",
+    "AMD": "blue",
 }
 
 def transform_string(input_str, split_char, join_char):
