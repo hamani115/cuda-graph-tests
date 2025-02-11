@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Set the offload architecture variable here for easy modification
-OFFLOAD_ARCH="sm_75"
+ARCH="sm_75"
 NSTEPS=10000
 SKIPBY=0
 NUM_RUNS=4
