@@ -5,23 +5,23 @@ set -e
 
 # Paths to CSV files (modify these paths as needed)
 CSV_FILES=(
-    "./multitests/complex_3_different_kernels_Nvidia T4.csv"
-    "./multitests/complex_3_different_kernels_Nvidia L4.csv"
-    "./multitests/complex_3_different_kernels_AMD Radeon Pro W7800.csv"
-    "./multitests/complex_different_sizes_kernels_Nvidia T4.csv"
-    "./multitests/complex_different_sizes_kernels_Nvidia L4.csv"
-    "./multitests/complex_different_sizes_kernels_AMD Radeon Pro W7800.csv"
-    "./multitests/complex_multi_stream_kernels_Nvidia T4.csv"
-    "./multitests/complex_multi_stream_kernels_Nvidia L4.csv"
-    "./multitests/complex_multi_stream_kernels_AMD Radeon Pro W7800.csv"
-    "./multitests/complex_multi_malloc_Nvidia T4.csv"
-    "./multitests/complex_multi_malloc_Nvidia L4.csv"
-    "./multitests/complex_multi_malloc_AMD Radeon Pro W7800.csv"
+    "./multitests/complex_3_different_kernels_T4.csv"
+    "./multitests/complex_3_different_kernels_L4.csv"
+    "./multitests/complex_3_different_kernels_AMD.csv"
+    "./multitests/complex_different_sizes_kernels_T4.csv"
+    "./multitests/complex_different_sizes_kernels_L4.csv"
+    "./multitests/complex_different_sizes_kernels_AMD.csv"
+    "./multitests/complex_multi_stream_kernels_T4.csv"
+    "./multitests/complex_multi_stream_kernels_L4.csv"
+    "./multitests/complex_multi_stream_kernels_AMD.csv"
+    "./multitests/complex_multi_malloc_T4.csv"
+    "./multitests/complex_multi_malloc_L4.csv"
+    "./multitests/complex_multi_malloc_AMD.csv"
     # "/path/to/your/file2.csv"
 )
 
 OUTPUT_DIR="./output_plots_multitests"
-PYTHON_SCRIPT="./plots_multitests_generator.py"
+PYTHON_SCRIPT="./plots_generator_multitests.py"
 
 # Check if NUM_RUNS is provided, otherwise default to 4
 if [[ -z "$1" ]]; then
