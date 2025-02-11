@@ -561,8 +561,8 @@ int main(int argc, char* argv[]) {
         FILENAME = "complex_multi_malloc.csv";
     }
 
-    std::cout << "==============COMPLEX DIFFERENT SIZES KERNELS TEST==============" << std::endl;
-    
+    std::cout << "==============COMPLEX MULTIPLE MALLOCAYSNC/FREEASYNC TEST==============" << std::endl;
+`    
     std::cout << "NSTEP    = " << NSTEP    << "\n";
     std::cout << "SKIPBY   = " << SKIPBY   << "\n";
     std::cout << "NUM_RUNS = " << NUM_RUNS << "\n";
