@@ -1291,7 +1291,7 @@ def main():
     parser.add_argument(
         '-o', '--output', 
         type=str, 
-        default='plots',
+        default='output_plots',
         help='Directory to save the output plots. Defaults to "./plots".'
     )
     parser.add_argument(
