@@ -562,7 +562,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "==============COMPLEX MULTIPLE MALLOCAYSNC/FREEASYNC TEST==============" << std::endl;
-`    
+    
     std::cout << "NSTEP    = " << NSTEP    << "\n";
     std::cout << "SKIPBY   = " << SKIPBY   << "\n";
     std::cout << "NUM_RUNS = " << NUM_RUNS << "\n";
