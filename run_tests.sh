@@ -62,7 +62,7 @@ rm -f complex-multi-stream-test/combined_multi_stream_singlerun
 ${COMMAND} complex-multi-stream-test/combined_multi_stream_singlerun.cu -o complex-multi-stream-test/combined_multi_stream_singlerun
 
 echo "Entering multi-stream-test directory"
-cd multi-stream-test/ || exit 1
+cd complex-multi-stream-test/ || exit 1
 echo "Running combined_multi_stream_singlerun with arguments ${NSTEPS} ${SKIPBY} ${NUM_RUNS}"
 ./combined_multi_stream_singlerun ${NSTEPS} ${SKIPBY} ${NUM_RUNS} ${Test4_Filename}
 cd ..
