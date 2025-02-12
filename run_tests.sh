@@ -7,10 +7,10 @@ SKIPBY=0
 NUM_RUNS=4
 
 # CSV Filenames
-Test1_Filename="complex_3_different_kernels.csv"
-Test2_Filename="complex_different_sizes_kernels.csv"
-Test3_Filename="complex_multi_malloc.csv"
-Test4_Filename="complex_multi_stream_kernels.csv"
+Test1_Filename="complex_3_different_kernels_Nvidia.csv"
+Test2_Filename="complex_different_sizes_kernels_Nvidia.csv"
+Test3_Filename="complex_multi_malloc_Nvidia.csv"
+Test4_Filename="complex_multi_stream_kernels_Nvidia.csv"
 
 # Set Compiler and Flags
 COMPILER="nvcc"
