@@ -5,15 +5,15 @@ set -e
 
 # Paths to CSV files (modify these paths as needed)
 CSV_FILES=(
-    "./complex-kernels-test/complex_3_different_kernels.csv"
-    "./diffsize-kernels-test/complex_different_sizes_kernels.csv"
-    "./multi-stream-test/complex_multi_stream_kernels.csv"
-    "./multi-malloc-test/complex_multi_malloc.csv"
+    "./complex-kernels-test/complex_3_different_kernels_Nvidia-T4-12-8-0.csv"
+    "./diffsize-kernels-test/complex_different_sizes_kernels_Nvidia-T4-12-8-0.csv"
+    "./multi-stream-test/complex_multi_stream_kernels_Nvidia-T4-12-8-0.csv"
+    "./multi-malloc-test/complex_multi_malloc_Nvidia-T4-12-8-0.csv"
     # "/path/to/your/file2.csv"
 )
 
 # Output directory for plots
-OUTPUT_DIR="./output_plots"
+OUTPUT_DIR="./output_plots_T4-12-8-0"
 # OUTPUT_DIR="./output_plots_combined"
 
 # Path to the Python script
@@ -58,3 +58,6 @@ echo "Executing: $COMMAND"
 
 # Execute the command
 eval "$COMMAND"
+
+# Success message
+echo "Plots generated successfully in directory: $OUTPUT_DIR"
